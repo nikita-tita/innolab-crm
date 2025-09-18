@@ -1,0 +1,273 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(PRODUCT_MANAGER)
+  accounts      Account[]
+  sessions      Session[]
+
+  createdIdeas      Idea[]       @relation("IdeaCreator")
+  createdHypotheses Hypothesis[] @relation("HypothesisCreator")
+  experiments       Experiment[]
+  comments          Comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Idea {
+  id          String      @id @default(cuid())
+  title       String
+  description String      @db.Text
+  category    String?
+  priority    Priority    @default(MEDIUM)
+  status      IdeaStatus  @default(NEW)
+
+  createdBy   String
+  creator     User        @relation("IdeaCreator", fields: [createdBy], references: [id])
+
+  hypotheses  Hypothesis[]
+  comments    Comment[]
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Hypothesis {
+  id             String           @id @default(cuid())
+  title          String
+  description    String           @db.Text
+  statement      String           @db.Text
+  status         HypothesisStatus @default(DRAFT)
+  priority       Priority         @default(MEDIUM)
+  confidenceLevel Int             @default(50)
+
+  ideaId         String
+  idea           Idea             @relation(fields: [ideaId], references: [id])
+
+  createdBy      String
+  creator        User             @relation("HypothesisCreator", fields: [createdBy], references: [id])
+
+  experiments    Experiment[]
+  successCriteria SuccessCriteria[]
+  comments       Comment[]
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model Experiment {
+  id              String           @id @default(cuid())
+  title           String
+  description     String           @db.Text
+  type            ExperimentType
+  status          ExperimentStatus @default(PLANNED)
+  startDate       DateTime?
+  endDate         DateTime?
+  actualStartDate DateTime?
+  actualEndDate   DateTime?
+
+  hypothesisId    String
+  hypothesis      Hypothesis       @relation(fields: [hypothesisId], references: [id])
+
+  ownerId         String
+  owner           User             @relation(fields: [ownerId], references: [id])
+
+  mvp             MVP?
+  results         ExperimentResult[]
+  comments        Comment[]
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model MVP {
+  id            String       @id @default(cuid())
+  title         String
+  description   String       @db.Text
+  type          MVPType
+  url           String?
+  status        MVPStatus    @default(PLANNING)
+
+  experimentId  String       @unique
+  experiment    Experiment   @relation(fields: [experimentId], references: [id])
+
+  attachments   Attachment[]
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model SuccessCriteria {
+  id           String     @id @default(cuid())
+  name         String
+  description  String?
+  targetValue  Float
+  actualValue  Float?
+  unit         String
+  achieved     Boolean    @default(false)
+
+  hypothesisId String
+  hypothesis   Hypothesis @relation(fields: [hypothesisId], references: [id])
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model ExperimentResult {
+  id           String     @id @default(cuid())
+  metricName   String
+  value        Float
+  unit         String
+  notes        String?    @db.Text
+
+  experimentId String
+  experiment   Experiment @relation(fields: [experimentId], references: [id])
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  ideaId       String?
+  idea         Idea?       @relation(fields: [ideaId], references: [id])
+
+  hypothesisId String?
+  hypothesis   Hypothesis? @relation(fields: [hypothesisId], references: [id])
+
+  experimentId String?
+  experiment   Experiment? @relation(fields: [experimentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Attachment {
+  id       String @id @default(cuid())
+  filename String
+  url      String
+  size     Int
+  mimeType String
+
+  mvpId    String?
+  mvp      MVP?   @relation(fields: [mvpId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UserRole {
+  PRODUCT_MANAGER
+  DESIGNER
+  MARKETER
+  ANALYST
+  MIDDLE_OFFICE
+  EXECUTIVE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IdeaStatus {
+  NEW
+  IN_REVIEW
+  APPROVED
+  IN_DEVELOPMENT
+  ARCHIVED
+}
+
+enum HypothesisStatus {
+  DRAFT
+  READY_FOR_TESTING
+  IN_EXPERIMENT
+  VALIDATED
+  INVALIDATED
+  ARCHIVED
+}
+
+enum ExperimentStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ExperimentType {
+  USER_INTERVIEW
+  AB_TEST
+  PROTOTYPE_TEST
+  SURVEY
+  MARKET_RESEARCH
+  OTHER
+}
+
+enum MVPType {
+  PROTOTYPE
+  LANDING_PAGE
+  WIREFRAME
+  DEMO
+  OTHER
+}
+
+enum MVPStatus {
+  PLANNING
+  IN_DEVELOPMENT
+  READY
+  DEPLOYED
+}
