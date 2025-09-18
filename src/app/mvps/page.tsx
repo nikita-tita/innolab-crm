@@ -48,29 +48,49 @@ export default function MVPs() {
         const response = await fetch('/api/mvps')
         if (response.ok) {
           const data = await response.json()
-          const formattedData = data.map((m: any) => ({
-            id: m.id,
-            title: m.title,
-            description: m.description,
-            type: m.type,
-            status: m.status,
-            features: m.features,
-            timeline: m.timeline,
-            createdAt: m.createdAt,
+          const formattedData = data.map((m: unknown) => {
+            const mvp = m as {
+              id: string;
+              title: string;
+              description: string;
+              type: string;
+              status: string;
+              features?: string;
+              timeline?: string;
+              createdAt: string;
+              experiment: {
+                title: string;
+                hypothesis: {
+                  title: string;
+                  idea: { title: string };
+                };
+              };
+              creator: { name: string };
+              _count: { comments: number };
+            };
+            return {
+            id: mvp.id,
+            title: mvp.title,
+            description: mvp.description,
+            type: mvp.type,
+            status: mvp.status,
+            features: mvp.features,
+            timeline: mvp.timeline,
+            createdAt: mvp.createdAt,
             experiment: {
-              title: m.experiment.title,
+              title: mvp.experiment.title,
               hypothesis: {
-                title: m.experiment.hypothesis.title,
+                title: mvp.experiment.hypothesis.title,
                 idea: {
-                  title: m.experiment.hypothesis.idea.title
+                  title: mvp.experiment.hypothesis.idea.title
                 }
               }
             },
             creator: {
-              name: m.creator.name
+              name: mvp.creator.name
             },
-            commentsCount: m._count.comments
-          }))
+            commentsCount: mvp._count.comments
+          }})
           setMvps(formattedData)
         } else {
           console.error('Failed to fetch MVPs')

@@ -193,21 +193,21 @@ export default function Dashboard() {
               <div className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                 <div>
-                  <p className="text-sm text-gray-900">Гипотеза "Увеличение конверсии" подтверждена</p>
+                  <p className="text-sm text-gray-900">Гипотеза &quot;Увеличение конверсии&quot; подтверждена</p>
                   <p className="text-xs text-gray-500">2 часа назад</p>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
                 <div>
-                  <p className="text-sm text-gray-900">Создан новый эксперимент "A/B тест лендинга"</p>
+                  <p className="text-sm text-gray-900">Создан новый эксперимент &quot;A/B тест лендинга&quot;</p>
                   <p className="text-xs text-gray-500">4 часа назад</p>
                 </div>
               </div>
               <div className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
                 <div>
-                  <p className="text-sm text-gray-900">Добавлена идея "Мобильное приложение"</p>
+                  <p className="text-sm text-gray-900">Добавлена идея &quot;Мобильное приложение&quot;</p>
                   <p className="text-xs text-gray-500">1 день назад</p>
                 </div>
               </div>

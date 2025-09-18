@@ -41,10 +41,12 @@ export default function NewHypothesis() {
         const response = await fetch('/api/ideas')
         if (response.ok) {
           const data = await response.json()
-          setIdeas(data.map((idea: any) => ({
-            id: idea.id,
-            title: idea.title
-          })))
+          setIdeas(data.map((idea: unknown) => {
+            const i = idea as { id: string; title: string };
+            return {
+            id: i.id,
+            title: i.title
+          }}))
         }
       } catch (error) {
         console.error('Error fetching ideas:', error)
@@ -224,7 +226,7 @@ export default function NewHypothesis() {
                   placeholder="Если мы [действие], то [ожидаемый результат], что мы измерим через [метрики]..."
                 />
                 <p className="mt-1 text-sm text-gray-500">
-                  Используйте формат: "Если мы [действие], то [результат], что мы измерим через [метрики]"
+                  Используйте формат: &quot;Если мы [действие], то [результат], что мы измерим через [метрики]&quot;
                 </p>
               </div>
 

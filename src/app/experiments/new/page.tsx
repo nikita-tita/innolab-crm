@@ -47,14 +47,21 @@ export default function NewExperiment() {
         const response = await fetch('/api/hypotheses')
         if (response.ok) {
           const data = await response.json()
-          setHypotheses(data.map((hypothesis: any) => ({
-            id: hypothesis.id,
-            title: hypothesis.title,
-            statement: hypothesis.statement,
+          setHypotheses(data.map((hypothesis: unknown) => {
+            const h = hypothesis as {
+              id: string;
+              title: string;
+              statement: string;
+              idea: { title: string };
+            };
+            return {
+            id: h.id,
+            title: h.title,
+            statement: h.statement,
             idea: {
-              title: hypothesis.idea.title
+              title: h.idea.title
             }
-          })))
+          }}))
         }
       } catch (error) {
         console.error('Error fetching hypotheses:', error)

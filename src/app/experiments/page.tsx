@@ -46,27 +46,44 @@ export default function Experiments() {
         const response = await fetch('/api/experiments')
         if (response.ok) {
           const data = await response.json()
-          const formattedData = data.map((e: any) => ({
-            id: e.id,
-            title: e.title,
-            description: e.description,
-            status: e.status,
-            methodology: e.methodology,
-            startDate: e.startDate,
-            endDate: e.endDate,
-            createdAt: e.createdAt,
+          const formattedData = data.map((e: unknown) => {
+            const experiment = e as {
+              id: string;
+              title: string;
+              description: string;
+              status: string;
+              methodology?: string;
+              startDate?: string;
+              endDate?: string;
+              createdAt: string;
+              hypothesis: {
+                title: string;
+                idea: { title: string };
+              };
+              creator: { name: string };
+              _count: { mvps: number; comments: number };
+            };
+            return {
+            id: experiment.id,
+            title: experiment.title,
+            description: experiment.description,
+            status: experiment.status,
+            methodology: experiment.methodology,
+            startDate: experiment.startDate,
+            endDate: experiment.endDate,
+            createdAt: experiment.createdAt,
             hypothesis: {
-              title: e.hypothesis.title,
+              title: experiment.hypothesis.title,
               idea: {
-                title: e.hypothesis.idea.title
+                title: experiment.hypothesis.idea.title
               }
             },
             creator: {
-              name: e.creator.name
+              name: experiment.creator.name
             },
-            mvpsCount: e._count.mvps,
-            commentsCount: e._count.comments
-          }))
+            mvpsCount: experiment._count.mvps,
+            commentsCount: experiment._count.comments
+          }})
           setExperiments(formattedData)
         } else {
           console.error('Failed to fetch experiments')

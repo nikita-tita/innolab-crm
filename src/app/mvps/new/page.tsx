@@ -50,17 +50,27 @@ export default function NewMVP() {
         const response = await fetch('/api/experiments')
         if (response.ok) {
           const data = await response.json()
-          setExperiments(data.map((experiment: any) => ({
-            id: experiment.id,
-            title: experiment.title,
-            description: experiment.description,
+          setExperiments(data.map((experiment: unknown) => {
+            const e = experiment as {
+              id: string;
+              title: string;
+              description: string;
+              hypothesis: {
+                title: string;
+                idea: { title: string };
+              };
+            };
+            return {
+            id: e.id,
+            title: e.title,
+            description: e.description,
             hypothesis: {
-              title: experiment.hypothesis.title,
+              title: e.hypothesis.title,
               idea: {
-                title: experiment.hypothesis.idea.title
+                title: e.hypothesis.idea.title
               }
             }
-          })))
+          }}))
         }
       } catch (error) {
         console.error('Error fetching experiments:', error)

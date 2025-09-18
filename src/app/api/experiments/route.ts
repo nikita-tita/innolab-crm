@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status")
     const hypothesisId = searchParams.get("hypothesisId")
 
-    const where: { status?: string; hypothesisId?: string } = {}
+    const where: any = {}
 
     if (status) where.status = status
     if (hypothesisId) where.hypothesisId = hypothesisId

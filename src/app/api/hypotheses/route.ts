@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const priority = searchParams.get("priority")
     const ideaId = searchParams.get("ideaId")
 
-    const where: { status?: string; priority?: string; ideaId?: string } = {}
+    const where: any = {}
 
     if (status) where.status = status
     if (priority) where.priority = priority

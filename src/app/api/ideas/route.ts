@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const priority = searchParams.get("priority")
     const category = searchParams.get("category")
 
-    const where: { status?: string; priority?: string; category?: { contains: string; mode: 'insensitive' } } = {}
+    const where: any = {}
 
     if (status) where.status = status
     if (priority) where.priority = priority

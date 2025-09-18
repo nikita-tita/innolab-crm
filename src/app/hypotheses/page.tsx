@@ -41,22 +41,36 @@ export default function Hypotheses() {
         const response = await fetch('/api/hypotheses')
         if (response.ok) {
           const data = await response.json()
-          const formattedData = data.map((h: unknown) => {            const hypothesis = h as {              id: string;              title: string;              statement: string;              status: string;              priority: string;              confidenceLevel: number;              createdAt: string;              idea: { title: string };              creator: { name: string };              _count: { experiments: number };            };            return {
-            id: hypothesis.id,
-            title: hypothesis.title,
-            statement: hypothesis.statement,
-            status: hypothesis.status,
-            priority: hypothesis.priority,
-            confidenceLevel: hypothesis.confidenceLevel,
-            createdAt: hypothesis.createdAt,
-            idea: {
-              title: hypothesis.idea.title
-            },
-            creator: {
-              name: hypothesis.creator.name
-            },
-            experimentsCount: hypothesis._count.experiments
-          }))
+          const formattedData = data.map((h: unknown) => {
+            const hypothesis = h as {
+              id: string;
+              title: string;
+              statement: string;
+              status: string;
+              priority: string;
+              confidenceLevel: number;
+              createdAt: string;
+              idea: { title: string };
+              creator: { name: string };
+              _count: { experiments: number };
+            };
+            return {
+              id: hypothesis.id,
+              title: hypothesis.title,
+              statement: hypothesis.statement,
+              status: hypothesis.status,
+              priority: hypothesis.priority,
+              confidenceLevel: hypothesis.confidenceLevel,
+              createdAt: hypothesis.createdAt,
+              idea: {
+                title: hypothesis.idea.title
+              },
+              creator: {
+                name: hypothesis.creator.name
+              },
+              experimentsCount: hypothesis._count.experiments
+            }
+          })
           setHypotheses(formattedData)
         } else {
           console.error('Failed to fetch hypotheses')
