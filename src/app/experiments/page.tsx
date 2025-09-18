@@ -33,6 +33,8 @@ export default function Experiments() {
   const [experiments, setExperiments] = useState<Experiment[]>([])
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState<'cards' | 'kanban'>('kanban')
+  const [q, setQ] = useState("")
+  const [statusFilter, setStatusFilter] = useState<string>("")
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -43,7 +45,9 @@ export default function Experiments() {
   useEffect(() => {
     const fetchExperiments = async () => {
       try {
-        const response = await fetch('/api/experiments')
+        const params = new URLSearchParams()
+        if (statusFilter) params.set('status', statusFilter)
+        const response = await fetch('/api/experiments' + (params.size ? `?${params.toString()}` : ''))
         if (response.ok) {
           const data = await response.json()
           const formattedData = data.map((e: unknown) => {
@@ -98,7 +102,7 @@ export default function Experiments() {
     if (status !== "loading") {
       fetchExperiments()
     }
-  }, [status])
+  }, [status, statusFilter])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -122,12 +126,15 @@ export default function Experiments() {
     }
   }
 
+  const filtered = experiments.filter(e =>
+    (!q || e.title.toLowerCase().includes(q.toLowerCase()) || e.description.toLowerCase().includes(q.toLowerCase()))
+  )
   const groupedExperiments = {
-    "PLANNING": experiments.filter(e => e.status === "PLANNING"),
-    "RUNNING": experiments.filter(e => e.status === "RUNNING"),
-    "PAUSED": experiments.filter(e => e.status === "PAUSED"),
-    "COMPLETED": experiments.filter(e => e.status === "COMPLETED"),
-    "CANCELLED": experiments.filter(e => e.status === "CANCELLED")
+    "PLANNING": filtered.filter(e => e.status === "PLANNING"),
+    "RUNNING": filtered.filter(e => e.status === "RUNNING"),
+    "PAUSED": filtered.filter(e => e.status === "PAUSED"),
+    "COMPLETED": filtered.filter(e => e.status === "COMPLETED"),
+    "CANCELLED": filtered.filter(e => e.status === "CANCELLED")
   }
 
   if (status === "loading" || loading) {
@@ -197,6 +204,15 @@ export default function Experiments() {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Эксперименты</h1>
             <div className="flex items-center space-x-4">
+              <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Поиск..." className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
+              <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                <option value="">Все статусы</option>
+                <option value="PLANNING">Планирование</option>
+                <option value="RUNNING">Выполняется</option>
+                <option value="PAUSED">Пауза</option>
+                <option value="COMPLETED">Завершён</option>
+                <option value="CANCELLED">Отменён</option>
+              </select>
               <div className="flex bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => setView('kanban')}

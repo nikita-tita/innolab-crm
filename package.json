@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "sh -c 'if [ -n \"$POSTGRES_PRISMA_URL\" ] || [ -n \"$DATABASE_URL\" ]; then export DATABASE_URL=${POSTGRES_PRISMA_URL:-$DATABASE_URL}; prisma generate && prisma migrate deploy && next build; else echo \"No DB URL set; skipping prisma migrate\"; prisma generate && next build; fi'",
+    "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint",
     "db:generate": "prisma generate",

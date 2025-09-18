@@ -28,6 +28,8 @@ export default function Hypotheses() {
   const [hypotheses, setHypotheses] = useState<Hypothesis[]>([])
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState<'cards' | 'kanban'>('kanban')
+  const [q, setQ] = useState("")
+  const [statusFilter, setStatusFilter] = useState<string>("")
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -38,7 +40,9 @@ export default function Hypotheses() {
   useEffect(() => {
     const fetchHypotheses = async () => {
       try {
-        const response = await fetch('/api/hypotheses')
+        const params = new URLSearchParams()
+        if (statusFilter) params.set('status', statusFilter)
+        const response = await fetch('/api/hypotheses' + (params.size ? `?${params.toString()}` : ''))
         if (response.ok) {
           const data = await response.json()
           const formattedData = data.map((h: unknown) => {
@@ -85,7 +89,7 @@ export default function Hypotheses() {
     if (status !== "loading") {
       fetchHypotheses()
     }
-  }, [status])
+  }, [status, statusFilter])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -121,12 +125,15 @@ export default function Hypotheses() {
     }
   }
 
+  const filtered = hypotheses.filter(h =>
+    (!q || h.title.toLowerCase().includes(q.toLowerCase()) || h.statement.toLowerCase().includes(q.toLowerCase()))
+  )
   const groupedHypotheses = {
-    "DRAFT": hypotheses.filter(h => h.status === "DRAFT"),
-    "READY_FOR_TESTING": hypotheses.filter(h => h.status === "READY_FOR_TESTING"),
-    "IN_EXPERIMENT": hypotheses.filter(h => h.status === "IN_EXPERIMENT"),
-    "VALIDATED": hypotheses.filter(h => h.status === "VALIDATED"),
-    "INVALIDATED": hypotheses.filter(h => h.status === "INVALIDATED")
+    "DRAFT": filtered.filter(h => h.status === "DRAFT"),
+    "READY_FOR_TESTING": filtered.filter(h => h.status === "READY_FOR_TESTING"),
+    "IN_EXPERIMENT": filtered.filter(h => h.status === "IN_EXPERIMENT"),
+    "VALIDATED": filtered.filter(h => h.status === "VALIDATED"),
+    "INVALIDATED": filtered.filter(h => h.status === "INVALIDATED")
   }
 
   if (status === "loading" || loading) {
@@ -196,6 +203,15 @@ export default function Hypotheses() {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Гипотезы</h1>
             <div className="flex items-center space-x-4">
+              <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Поиск..." className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
+              <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                <option value="">Все статусы</option>
+                <option value="DRAFT">Черновик</option>
+                <option value="READY_FOR_TESTING">Готова к тестированию</option>
+                <option value="IN_EXPERIMENT">В эксперименте</option>
+                <option value="VALIDATED">Подтверждена</option>
+                <option value="INVALIDATED">Опровергнута</option>
+              </select>
               <div className="flex bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => setView('kanban')}
