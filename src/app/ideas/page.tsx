@@ -32,52 +32,26 @@ export default function Ideas() {
   }, [status, router])
 
   useEffect(() => {
-    // Симуляция загрузки идей
-    setTimeout(() => {
-      setIdeas([
-        {
-          id: "1",
-          title: "Персонализированная аналитика",
-          description: "Создать систему персонализации отчетов для каждого пользователя на основе его роли и предпочтений",
-          category: "Аналитика",
-          status: "NEW",
-          priority: "HIGH",
-          createdAt: "2024-01-15T10:30:00Z",
-          creator: {
-            name: "Анна Петрова",
-            email: "anna@innolab.com"
-          }
-        },
-        {
-          id: "2",
-          title: "Мобильное приложение",
-          description: "Разработать мобильную версию системы для работы с гипотезами в поле",
-          category: "Мобильная разработка",
-          status: "IN_REVIEW",
-          priority: "MEDIUM",
-          createdAt: "2024-01-12T14:20:00Z",
-          creator: {
-            name: "Иван Сидоров",
-            email: "ivan@innolab.com"
-          }
-        },
-        {
-          id: "3",
-          title: "AI-ассистент для анализа",
-          description: "Интеграция искусственного интеллекта для автоматического анализа результатов экспериментов",
-          category: "Искусственный интеллект",
-          status: "APPROVED",
-          priority: "CRITICAL",
-          createdAt: "2024-01-10T09:15:00Z",
-          creator: {
-            name: "Мария Козлова",
-            email: "maria@innolab.com"
-          }
+    const fetchIdeas = async () => {
+      try {
+        const response = await fetch('/api/ideas')
+        if (response.ok) {
+          const data = await response.json()
+          setIdeas(data)
+        } else {
+          console.error('Failed to fetch ideas')
         }
-      ])
-      setLoading(false)
-    }, 1000)
-  }, [])
+      } catch (error) {
+        console.error('Error fetching ideas:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (status !== "loading") {
+      fetchIdeas()
+    }
+  }, [status])
 
   const getStatusColor = (status: string) => {
     switch (status) {

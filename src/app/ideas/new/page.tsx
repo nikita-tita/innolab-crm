@@ -26,11 +26,26 @@ export default function NewIdea() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Симуляция создания идеи
-    setTimeout(() => {
-      alert("Идея успешно создана!")
-      router.push("/ideas")
-    }, 1000)
+    try {
+      const response = await fetch('/api/ideas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      if (response.ok) {
+        router.push("/ideas")
+      } else {
+        const error = await response.json()
+        alert(`Ошибка: ${error.error}`)
+      }
+    } catch (error) {
+      alert("Произошла ошибка при создании идеи")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
