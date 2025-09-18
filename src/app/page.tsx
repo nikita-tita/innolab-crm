@@ -38,16 +38,17 @@ export default function Home() {
 
           <div className="flex gap-4 justify-center">
             <Link
-              href="/dashboard"
+              href="/demo"
               className="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
             >
-              Перейти к дашборду
+              Посмотреть демо
             </Link>
             <Link
-              href="/auth/signin"
+              href="https://github.com/nikita-tita/innolab-crm"
+              target="_blank"
               className="border border-blue-600 text-blue-600 px-8 py-3 rounded-lg font-medium hover:bg-blue-50 transition-colors"
             >
-              Войти в систему
+              GitHub репозиторий
             </Link>
           </div>
         </div>
