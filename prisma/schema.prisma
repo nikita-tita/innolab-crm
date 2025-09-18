@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -34,12 +33,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -66,7 +65,7 @@ model VerificationToken {
 model Idea {
   id          String      @id @default(cuid())
   title       String
-  description String      @db.Text
+  description String
   category    String?
   priority    Priority    @default(MEDIUM)
   status      IdeaStatus  @default(NEW)
@@ -84,15 +83,15 @@ model Idea {
 model Hypothesis {
   id             String           @id @default(cuid())
   title          String
-  description    String?          @db.Text
-  statement      String           @db.Text
+  description    String?
+  statement      String
   status         HypothesisStatus @default(DRAFT)
   priority       Priority         @default(MEDIUM)
   confidenceLevel Int             @default(50)
 
   // Доп. поля для удобства UI
   testingMethod       String?
-  successCriteriaText String?      @db.Text
+  successCriteriaText String?
 
   ideaId         String
   idea           Idea             @relation(fields: [ideaId], references: [id])
@@ -111,7 +110,7 @@ model Hypothesis {
 model Experiment {
   id              String           @id @default(cuid())
   title           String
-  description     String           @db.Text
+  description     String
   type            ExperimentType   @default(OTHER)
   status          ExperimentStatus @default(PLANNING)
   startDate       DateTime?
@@ -120,10 +119,10 @@ model Experiment {
   actualEndDate   DateTime?
 
   // Доп. поля для планирования эксперимента
-  methodology     String?          @db.Text
-  timeline        String?          @db.Text
-  resources       String?          @db.Text
-  successMetrics  String?          @db.Text
+  methodology     String?
+  timeline        String?
+  resources       String?
+  successMetrics  String?
 
   hypothesisId    String
   hypothesis      Hypothesis       @relation(fields: [hypothesisId], references: [id])
@@ -142,17 +141,17 @@ model Experiment {
 model MVP {
   id            String       @id @default(cuid())
   title         String
-  description   String       @db.Text
+  description   String
   type          MVPType
   url           String?
   status        MVPStatus    @default(PLANNING)
 
   // Доп. поля MVP
-  features       String?     @db.Text
-  technicalSpecs String?     @db.Text
-  resources      String?     @db.Text
-  timeline       String?     @db.Text
-  successCriteria String?    @db.Text
+  features       String?
+  technicalSpecs String?
+  resources      String?
+  timeline       String?
+  successCriteria String?
 
   createdBy     String
   creator       User         @relation("MVPCreator", fields: [createdBy], references: [id], onDelete: Cascade)
@@ -188,7 +187,7 @@ model ExperimentResult {
   metricName   String
   value        Float
   unit         String
-  notes        String?    @db.Text
+  notes        String?
 
   experimentId String
   experiment   Experiment @relation(fields: [experimentId], references: [id])
@@ -199,7 +198,7 @@ model ExperimentResult {
 
 model Comment {
   id        String   @id @default(cuid())
-  content   String   @db.Text
+  content   String
 
   userId    String
   user      User     @relation(fields: [userId], references: [id])
