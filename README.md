@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# InnoLab CRM
 
-## Getting Started
+Адаптивный IT-сервис для управления инновационными гипотезами в корпоративной инновационной лаборатории.
 
-First, run the development server:
+## Описание проекта
 
+InnoLab CRM предназначен для сопровождения полного жизненного цикла инновационных идей – от первоначальной идеи до получения результатов – с акцентом на командную работу и методический подход к экспериментам на основе циклов HADI (Hypothesis, Action, Data, Insight).
+
+## Технологический стек
+
+- **Frontend**: Next.js 14 с TypeScript
+- **UI Framework**: Tailwind CSS + shadcn/ui
+- **Backend**: Next.js API Routes
+- **База данных**: PostgreSQL с Prisma ORM
+- **Аутентификация**: NextAuth.js
+- **Контейнеризация**: Docker
+- **Развертывание**: Vercel
+
+## Основные функции
+
+- 💡 **Управление идеями** - от первоначальной идеи до проверяемой гипотезы
+- 🔬 **HADI-циклы** - структурированное тестирование гипотез
+- 📊 **Аналитика** - метрики и инсайты для принятия решений
+- 👥 **Командная работа** - совместная работа различных ролей
+- 📱 **Адаптивный дизайн** - работа на всех устройствах
+
+## Быстрый старт
+
+### Локальная разработка
+
+1. Установите зависимости:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Настройте переменные окружения:
+```bash
+cp .env.example .env
+# Отредактируйте .env файл
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Запустите базу данных и мигрируйте схему:
+```bash
+npx prisma generate
+npx prisma migrate dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Запустите сервер разработки:
+```bash
+npm run dev
+```
 
-## Learn More
+### Запуск с Docker
 
-To learn more about Next.js, take a look at the following resources:
+1. Запустите проект с docker-compose:
+```bash
+docker-compose up -d
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Выполните миграции базы данных:
+```bash
+docker-compose exec app npx prisma migrate dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Структура проекта
 
-## Deploy on Vercel
+```
+src/
+├── app/                 # App Router страницы и API
+├── components/          # Переиспользуемые компоненты
+├── lib/                # Утилиты и конфигурация
+└── types/              # TypeScript типы
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+prisma/
+├── schema.prisma       # Схема базы данных
+└── migrations/         # Миграции
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Пользовательские роли
+
+- **Продакт-менеджер** - управление процессом и координация
+- **Дизайнер** - создание прототипов и MVP
+- **Маркетолог** - проверка гипотез спроса и продвижения
+- **Аналитик** - работа с данными и метриками
+- **Middle-office** - координация процессов и ресурсов
+- **Руководитель** - стратегические решения и утверждения
+
+## Развертывание на Vercel
+
+1. Подключите репозиторий к Vercel
+2. Настройте переменные окружения в панели Vercel
+3. Развертывание произойдет автоматически
+
+## Лицензия
+
+Проект создан для внутреннего использования в корпоративной среде.
