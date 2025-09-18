@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const priority = searchParams.get("priority")
     const ideaId = searchParams.get("ideaId")
 
-    const where: any = {}
+    const where: Record<string, string> = {}
 
     if (status) where.status = status
     if (priority) where.priority = priority
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       priority = "MEDIUM",
       confidenceLevel = 70,
       testingMethod,
-      successCriteria
+      successCriteria: successCriteriaText
     } = body
 
     if (!title || !statement || !ideaId) {
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
         priority,
         confidenceLevel,
         testingMethod: testingMethod?.trim() || null,
-        successCriteria: successCriteria?.trim() || null,
+        successCriteriaText: successCriteriaText?.trim() || null,
         status: "DRAFT",
         createdBy: session.user.id
       },

@@ -5,6 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -19,7 +20,8 @@ model User {
 
   createdIdeas      Idea[]       @relation("IdeaCreator")
   createdHypotheses Hypothesis[] @relation("HypothesisCreator")
-  experiments       Experiment[]
+  experiments       Experiment[] @relation("ExperimentCreator")
+  createdMVPs       MVP[]        @relation("MVPCreator")
   comments          Comment[]
 
   createdAt DateTime @default(now())
@@ -82,11 +84,15 @@ model Idea {
 model Hypothesis {
   id             String           @id @default(cuid())
   title          String
-  description    String           @db.Text
+  description    String?          @db.Text
   statement      String           @db.Text
   status         HypothesisStatus @default(DRAFT)
   priority       Priority         @default(MEDIUM)
   confidenceLevel Int             @default(50)
+
+  // Доп. поля для удобства UI
+  testingMethod       String?
+  successCriteriaText String?      @db.Text
 
   ideaId         String
   idea           Idea             @relation(fields: [ideaId], references: [id])
@@ -106,20 +112,26 @@ model Experiment {
   id              String           @id @default(cuid())
   title           String
   description     String           @db.Text
-  type            ExperimentType
-  status          ExperimentStatus @default(PLANNED)
+  type            ExperimentType   @default(OTHER)
+  status          ExperimentStatus @default(PLANNING)
   startDate       DateTime?
   endDate         DateTime?
   actualStartDate DateTime?
   actualEndDate   DateTime?
 
+  // Доп. поля для планирования эксперимента
+  methodology     String?          @db.Text
+  timeline        String?          @db.Text
+  resources       String?          @db.Text
+  successMetrics  String?          @db.Text
+
   hypothesisId    String
   hypothesis      Hypothesis       @relation(fields: [hypothesisId], references: [id])
 
-  ownerId         String
-  owner           User             @relation(fields: [ownerId], references: [id])
+  createdBy       String
+  creator         User             @relation("ExperimentCreator", fields: [createdBy], references: [id], onDelete: Cascade)
 
-  mvp             MVP?
+  mvps            MVP[]
   results         ExperimentResult[]
   comments        Comment[]
 
@@ -135,10 +147,21 @@ model MVP {
   url           String?
   status        MVPStatus    @default(PLANNING)
 
-  experimentId  String       @unique
+  // Доп. поля MVP
+  features       String?     @db.Text
+  technicalSpecs String?     @db.Text
+  resources      String?     @db.Text
+  timeline       String?     @db.Text
+  successCriteria String?    @db.Text
+
+  createdBy     String
+  creator       User         @relation("MVPCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+
+  experimentId  String
   experiment    Experiment   @relation(fields: [experimentId], references: [id])
 
   attachments   Attachment[]
+  comments      Comment[]
 
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
@@ -189,6 +212,9 @@ model Comment {
 
   experimentId String?
   experiment   Experiment? @relation(fields: [experimentId], references: [id])
+
+  mvpId        String?
+  mvp          MVP?        @relation(fields: [mvpId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -242,8 +268,9 @@ enum HypothesisStatus {
 }
 
 enum ExperimentStatus {
-  PLANNED
-  IN_PROGRESS
+  PLANNING
+  RUNNING
+  PAUSED
   COMPLETED
   CANCELLED
 }
@@ -260,6 +287,7 @@ enum ExperimentType {
 enum MVPType {
   PROTOTYPE
   LANDING_PAGE
+  MOCKUP
   WIREFRAME
   DEMO
   OTHER
@@ -267,7 +295,8 @@ enum MVPType {
 
 enum MVPStatus {
   PLANNING
-  IN_DEVELOPMENT
-  READY
+  DEVELOPMENT
+  TESTING
   DEPLOYED
+  ARCHIVED
 }

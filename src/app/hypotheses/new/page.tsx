@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
 
 interface Idea {
@@ -10,7 +10,7 @@ interface Idea {
   title: string
 }
 
-export default function NewHypothesis() {
+function NewHypothesisInner() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -333,5 +333,13 @@ export default function NewHypothesis() {
         </div>
       </main>
     </div>
+  )
+}
+
+export default function NewHypothesis() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="text-lg">Загрузка...</div></div>}>
+      <NewHypothesisInner />
+    </Suspense>
   )
 }
