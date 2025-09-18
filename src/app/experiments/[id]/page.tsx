@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
+import Comments from "@/components/ui/Comments"
+import StatusControls from "./status-controls"
+import ExperimentResultsPanel from "@/components/ui/ExperimentResultsPanel"
 
 export default async function ExperimentDetails({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -42,6 +45,7 @@ export default async function ExperimentDetails({ params }: { params: Promise<{ 
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
             <span className="bg-gray-100 px-2 py-0.5 rounded">Статус: {exp.status}</span>
           </div>
+          <StatusControls id={exp.id} current={exp.status} />
           <p className="text-gray-700 leading-7 whitespace-pre-wrap mb-4">{exp.description}</p>
           {exp.methodology && (
             <div className="mb-2 text-sm text-gray-700"><span className="font-medium">Методология:</span> {exp.methodology}</div>
@@ -87,6 +91,9 @@ export default async function ExperimentDetails({ params }: { params: Promise<{ 
               Назад к списку
             </Link>
           </div>
+
+          <Comments experimentId={exp.id} />
+          <ExperimentResultsPanel experimentId={exp.id} />
         </div>
       </main>
     </div>

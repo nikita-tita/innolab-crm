@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
+import Comments from "@/components/ui/Comments"
 
 export default async function IdeaDetails({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -69,6 +70,8 @@ export default async function IdeaDetails({ params }: { params: Promise<{ id: st
               Назад к списку
             </Link>
           </div>
+
+          <Comments ideaId={idea.id} />
         </div>
       </main>
     </div>

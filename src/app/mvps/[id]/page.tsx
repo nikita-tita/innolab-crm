@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
+import Comments from "@/components/ui/Comments"
+import AttachmentsPanel from "@/components/ui/AttachmentsPanel"
 
 export default async function MVPDetails({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -66,6 +68,9 @@ export default async function MVPDetails({ params }: { params: Promise<{ id: str
               Назад к списку
             </Link>
           </div>
+
+          <Comments mvpId={mvp.id} />
+          <AttachmentsPanel mvpId={mvp.id} />
         </div>
       </main>
     </div>

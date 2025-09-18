@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
+import Comments from "@/components/ui/Comments"
+import HADIStepper from "@/components/ui/HADIStepper"
+import StatusControls from "./status-controls"
+import SuccessCriteriaPanel from "@/components/ui/SuccessCriteriaPanel"
 
 export default async function HypothesisDetails({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -38,6 +42,8 @@ export default async function HypothesisDetails({ params }: { params: Promise<{ 
             Идея: <Link href={`/ideas/${hypothesis.idea.id}`} className="text-blue-600 hover:text-blue-800">{hypothesis.idea.title}</Link>
           </div>
           <h1 className="text-2xl font-semibold text-gray-900 mb-2">{hypothesis.title}</h1>
+          <StatusControls id={hypothesis.id} current={hypothesis.status} type="hypothesis" />
+          <HADIStepper current={hypothesis.status === 'DRAFT' ? 'H' : hypothesis.status === 'IN_EXPERIMENT' || hypothesis.status === 'READY_FOR_TESTING' ? 'A' : hypothesis.status === 'VALIDATED' || hypothesis.status === 'INVALIDATED' ? 'I' : 'D'} />
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
             <span className="bg-gray-100 px-2 py-0.5 rounded">Приоритет: {hypothesis.priority}</span>
             <span className="bg-gray-100 px-2 py-0.5 rounded">Статус: {hypothesis.status}</span>
@@ -79,6 +85,9 @@ export default async function HypothesisDetails({ params }: { params: Promise<{ 
               Назад к списку
             </Link>
           </div>
+
+          <Comments hypothesisId={hypothesis.id} />
+          <SuccessCriteriaPanel hypothesisId={hypothesis.id} />
         </div>
       </main>
     </div>
