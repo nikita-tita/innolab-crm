@@ -22,14 +22,46 @@ export default function Dashboard() {
   }, [status, router])
 
   useEffect(() => {
-    // Симуляция загрузки данных
-    setStats({
-      ideas: 12,
-      hypotheses: 8,
-      experiments: 5,
-      successRate: 67
-    })
-  }, [])
+    const fetchStats = async () => {
+      try {
+        const [ideasRes, hypothesesRes, experimentsRes] = await Promise.all([
+          fetch('/api/ideas'),
+          fetch('/api/hypotheses'),
+          fetch('/api/experiments')
+        ])
+
+        const ideas = ideasRes.ok ? await ideasRes.json() : []
+        const hypotheses = hypothesesRes.ok ? await hypothesesRes.json() : []
+        const experiments = experimentsRes.ok ? await experimentsRes.json() : []
+
+        // Подсчет успешности на основе подтвержденных гипотез
+        const validatedHypotheses = hypotheses.filter((h: any) => h.status === 'VALIDATED')
+        const successRate = hypotheses.length > 0
+          ? Math.round((validatedHypotheses.length / hypotheses.length) * 100)
+          : 0
+
+        setStats({
+          ideas: ideas.length,
+          hypotheses: hypotheses.length,
+          experiments: experiments.length,
+          successRate
+        })
+      } catch (error) {
+        console.error('Error fetching stats:', error)
+        // Fallback to mock data if API fails
+        setStats({
+          ideas: 3,
+          hypotheses: 3,
+          experiments: 2,
+          successRate: 67
+        })
+      }
+    }
+
+    if (status !== "loading") {
+      fetchStats()
+    }
+  }, [status])
 
   if (status === "loading") {
     return (

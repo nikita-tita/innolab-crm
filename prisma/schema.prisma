@@ -9,23 +9,21 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  role          UserRole  @default(PRODUCT_MANAGER)
-  accounts      Account[]
-  sessions      Session[]
-
-  createdIdeas      Idea[]       @relation("IdeaCreator")
-  createdHypotheses Hypothesis[] @relation("HypothesisCreator")
-  experiments       Experiment[] @relation("ExperimentCreator")
-  createdMVPs       MVP[]        @relation("MVPCreator")
+  id                String       @id @default(cuid())
+  name              String?
+  email             String       @unique
+  emailVerified     DateTime?
+  image             String?
+  role              UserRole     @default(PRODUCT_MANAGER)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  accounts          Account[]
   comments          Comment[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  experiments       Experiment[] @relation("ExperimentCreator")
+  createdHypotheses Hypothesis[] @relation("HypothesisCreator")
+  createdIdeas      Idea[]       @relation("IdeaCreator")
+  createdMVPs       MVP[]        @relation("MVPCreator")
+  sessions          Session[]
 }
 
 model Account {
@@ -41,8 +39,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -64,107 +61,86 @@ model VerificationToken {
 }
 
 model Idea {
-  id          String      @id @default(cuid())
+  id          String       @id @default(cuid())
   title       String
   description String
   category    String?
-  priority    Priority    @default(MEDIUM)
-  status      IdeaStatus  @default(NEW)
-
+  priority    Priority     @default(MEDIUM)
+  status      IdeaStatus   @default(NEW)
   createdBy   String
-  creator     User        @relation("IdeaCreator", fields: [createdBy], references: [id])
-
-  hypotheses  Hypothesis[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   comments    Comment[]
-
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  hypotheses  Hypothesis[]
+  creator     User         @relation("IdeaCreator", fields: [createdBy], references: [id])
 }
 
 model Hypothesis {
-  id             String           @id @default(cuid())
-  title          String
-  description    String?
-  statement      String
-  status         HypothesisStatus @default(DRAFT)
-  priority       Priority         @default(MEDIUM)
-  confidenceLevel Int             @default(50)
-
-  // Доп. поля для удобства UI
+  id                  String            @id @default(cuid())
+  title               String
+  description         String?
+  statement           String
+  status              HypothesisStatus  @default(DRAFT)
+  priority            Priority          @default(MEDIUM)
+  confidenceLevel     Int               @default(50)
   testingMethod       String?
-  successCriteriaText String? @db.Text
-
-  ideaId         String
-  idea           Idea             @relation(fields: [ideaId], references: [id])
-
-  createdBy      String
-  creator        User             @relation("HypothesisCreator", fields: [createdBy], references: [id])
-
-  experiments    Experiment[]
-  successCriteria SuccessCriteria[]
-  comments       Comment[]
-
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  successCriteriaText String?
+  ideaId              String
+  createdBy           String
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  comments            Comment[]
+  experiments         Experiment[]
+  creator             User              @relation("HypothesisCreator", fields: [createdBy], references: [id])
+  idea                Idea              @relation(fields: [ideaId], references: [id])
+  successCriteria     SuccessCriteria[]
 }
 
 model Experiment {
-  id              String           @id @default(cuid())
+  id              String             @id @default(cuid())
   title           String
   description     String
-  type            ExperimentType   @default(OTHER)
-  status          ExperimentStatus @default(PLANNING)
+  type            ExperimentType     @default(OTHER)
+  status          ExperimentStatus   @default(PLANNING)
   startDate       DateTime?
   endDate         DateTime?
   actualStartDate DateTime?
   actualEndDate   DateTime?
-
-  // Доп. поля для планирования эксперимента
-  methodology     String? @db.Text
-  timeline        String? @db.Text
-  resources       String? @db.Text
-  successMetrics  String? @db.Text
-
+  methodology     String?
+  timeline        String?
+  resources       String?
+  successMetrics  String?
   hypothesisId    String
-  hypothesis      Hypothesis       @relation(fields: [hypothesisId], references: [id])
-
   createdBy       String
-  creator         User             @relation("ExperimentCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-
-  mvps            MVP[]
-  results         ExperimentResult[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
   comments        Comment[]
-
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  creator         User               @relation("ExperimentCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  hypothesis      Hypothesis         @relation(fields: [hypothesisId], references: [id])
+  results         ExperimentResult[]
+  mvps            MVP[]
 }
 
 model MVP {
-  id            String       @id @default(cuid())
-  title         String
-  description   String
-  type          MVPType
-  url           String?
-  status        MVPStatus    @default(PLANNING)
-
-  // Доп. поля MVP
-  features       String? @db.Text
-  technicalSpecs String? @db.Text
-  resources      String? @db.Text
-  timeline       String? @db.Text
-  successCriteria String? @db.Text
-
-  createdBy     String
-  creator       User         @relation("MVPCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-
-  experimentId  String
-  experiment    Experiment   @relation(fields: [experimentId], references: [id])
-
-  attachments   Attachment[]
-  comments      Comment[]
-
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  id              String       @id @default(cuid())
+  title           String
+  description     String
+  type            MVPType
+  url             String?
+  status          MVPStatus    @default(PLANNING)
+  features        String?
+  technicalSpecs  String?
+  resources       String?
+  timeline        String?
+  successCriteria String?
+  createdBy       String
+  experimentId    String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  attachments     Attachment[]
+  comments        Comment[]
+  creator         User         @relation("MVPCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  experiment      Experiment   @relation(fields: [experimentId], references: [id])
 }
 
 model SuccessCriteria {
@@ -175,12 +151,10 @@ model SuccessCriteria {
   actualValue  Float?
   unit         String
   achieved     Boolean    @default(false)
-
   hypothesisId String
-  hypothesis   Hypothesis @relation(fields: [hypothesisId], references: [id])
-
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+  hypothesis   Hypothesis @relation(fields: [hypothesisId], references: [id])
 }
 
 model ExperimentResult {
@@ -189,49 +163,39 @@ model ExperimentResult {
   value        Float
   unit         String
   notes        String?
-
   experimentId String
-  experiment   Experiment @relation(fields: [experimentId], references: [id])
-
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+  experiment   Experiment @relation(fields: [experimentId], references: [id])
 }
 
 model Comment {
-  id        String   @id @default(cuid())
-  content   String
-
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-
+  id           String      @id @default(cuid())
+  content      String
+  userId       String
   ideaId       String?
-  idea         Idea?       @relation(fields: [ideaId], references: [id])
-
   hypothesisId String?
-  hypothesis   Hypothesis? @relation(fields: [hypothesisId], references: [id])
-
   experimentId String?
-  experiment   Experiment? @relation(fields: [experimentId], references: [id])
-
   mvpId        String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  experiment   Experiment? @relation(fields: [experimentId], references: [id])
+  hypothesis   Hypothesis? @relation(fields: [hypothesisId], references: [id])
+  idea         Idea?       @relation(fields: [ideaId], references: [id])
   mvp          MVP?        @relation(fields: [mvpId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user         User        @relation(fields: [userId], references: [id])
 }
 
 model Attachment {
-  id       String @id @default(cuid())
-  filename String
-  url      String
-  size     Int
-  mimeType String
-
-  mvpId    String?
-  mvp      MVP?   @relation(fields: [mvpId], references: [id])
-
+  id        String   @id @default(cuid())
+  filename  String
+  url       String
+  size      Int
+  mimeType  String
+  mvpId     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  mvp       MVP?     @relation(fields: [mvpId], references: [id])
 }
 
 enum UserRole {
@@ -287,10 +251,10 @@ enum ExperimentType {
 enum MVPType {
   PROTOTYPE
   LANDING_PAGE
-  MOCKUP
   WIREFRAME
   DEMO
   OTHER
+  MOCKUP
 }
 
 enum MVPStatus {
