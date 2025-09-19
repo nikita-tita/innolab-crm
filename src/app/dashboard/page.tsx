@@ -4,6 +4,8 @@ import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import RecentActivity from "@/components/ui/RecentActivity"
+import ExportButton from "@/components/ui/ExportButton"
 
 export default function Dashboard() {
   const { data: session, status } = useSession()
@@ -76,24 +78,33 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Header */}
-      <header className="bg-white shadow">
+      <header className="bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">InnoLab CRM</h1>
+              <div className="bg-white bg-opacity-20 rounded-lg p-2 mr-3">
+                <span className="text-2xl">🚀</span>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">InnoLab CRM</h1>
+                <p className="text-blue-100 text-sm">Система управления инновациями</p>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">
-                Добро пожаловать, {session.user?.name || session.user?.email}
+              <div className="text-sm text-blue-100">
+                Добро пожаловать, <span className="text-white font-medium">{session.user?.name || session.user?.email}</span>
               </div>
-              <div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+              <div className="text-xs bg-white bg-opacity-20 text-white px-3 py-1 rounded-full font-medium">
                 {session.user?.role || 'USER'}
+              </div>
+              <div className="border-l border-white border-opacity-30 pl-4">
+                <ExportButton type="all" className="[&>div>button]:bg-white [&>div>button]:bg-opacity-20 [&>div>button]:text-white [&>div>button]:border-white [&>div>button]:border-opacity-30 [&>div>button:hover]:bg-opacity-30" />
               </div>
               <button
                 onClick={() => signOut()}
-                className="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700"
+                className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 border border-white border-opacity-30"
               >
                 Выйти
               </button>
@@ -103,23 +114,28 @@ export default function Dashboard() {
       </header>
 
       {/* Navigation */}
-      <nav className="bg-white border-b">
+      <nav className="bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
-            <Link href="/dashboard" className="border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600">
-              Дашборд
+            <Link href="/dashboard" className="border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600 flex items-center space-x-2">
+              <span>📊</span>
+              <span>Дашборд</span>
             </Link>
-            <Link href="/ideas" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              Идеи
+            <Link href="/ideas" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>💡</span>
+              <span>Идеи</span>
             </Link>
-            <Link href="/hypotheses" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              Гипотезы
+            <Link href="/hypotheses" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>🔬</span>
+              <span>Гипотезы</span>
             </Link>
-            <Link href="/experiments" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              Эксперименты
+            <Link href="/experiments" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>⚗️</span>
+              <span>Эксперименты</span>
             </Link>
-            <Link href="/knowledge" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              База знаний
+            <Link href="/knowledge" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>📚</span>
+              <span>База знаний</span>
             </Link>
           </div>
         </div>
@@ -129,89 +145,104 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow">
+          <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
             <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <span className="text-2xl">💡</span>
+              <div className="p-3 bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl shadow-md">
+                <span className="text-2xl filter drop-shadow-sm">💡</span>
               </div>
               <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500">Идеи</h3>
-                <p className="text-2xl font-semibold text-gray-900">{stats.ideas}</p>
+                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Идеи</h3>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.ideas}</p>
+                <p className="text-xs text-green-600 mt-1">+2 за неделю</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow">
+          <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
             <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <span className="text-2xl">🔬</span>
+              <div className="p-3 bg-gradient-to-br from-green-400 to-green-500 rounded-xl shadow-md">
+                <span className="text-2xl filter drop-shadow-sm">🔬</span>
               </div>
               <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500">Гипотезы</h3>
-                <p className="text-2xl font-semibold text-gray-900">{stats.hypotheses}</p>
+                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Гипотезы</h3>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.hypotheses}</p>
+                <p className="text-xs text-blue-600 mt-1">1 в работе</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow">
+          <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
             <div className="flex items-center">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <span className="text-2xl">⚗️</span>
+              <div className="p-3 bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl shadow-md">
+                <span className="text-2xl filter drop-shadow-sm">⚗️</span>
               </div>
               <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500">Эксперименты</h3>
-                <p className="text-2xl font-semibold text-gray-900">{stats.experiments}</p>
+                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Эксперименты</h3>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.experiments}</p>
+                <p className="text-xs text-orange-600 mt-1">1 активный</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow">
+          <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
             <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <span className="text-2xl">📊</span>
+              <div className="p-3 bg-gradient-to-br from-purple-400 to-purple-500 rounded-xl shadow-md">
+                <span className="text-2xl filter drop-shadow-sm">📊</span>
               </div>
               <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500">Успешность</h3>
-                <p className="text-2xl font-semibold text-gray-900">{stats.successRate}%</p>
+                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Успешность</h3>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.successRate}%</p>
+                <p className={`text-xs mt-1 ${stats.successRate >= 50 ? 'text-green-600' : 'text-red-600'}`}>
+                  {stats.successRate >= 50 ? 'Хороший результат' : 'Нужно улучшить'}
+                </p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Быстрые действия</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-100">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+            <span className="text-2xl mr-2">⚡</span>
+            Быстрые действия
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Link
               href="/ideas/new"
-              className="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+              className="group flex items-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl hover:from-blue-100 hover:to-blue-200 transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-blue-200"
             >
-              <span className="text-2xl mr-3">➕</span>
+              <div className="bg-blue-500 p-3 rounded-xl mr-4 group-hover:bg-blue-600 transition-colors duration-300">
+                <span className="text-2xl text-white">💡</span>
+              </div>
               <div>
-                <h3 className="font-medium text-blue-900">Добавить идею</h3>
-                <p className="text-sm text-blue-600">Создать новую инновационную идею</p>
+                <h3 className="font-semibold text-blue-900 group-hover:text-blue-800">Добавить идею</h3>
+                <p className="text-sm text-blue-600 mt-1">Создать новую инновационную идею</p>
               </div>
             </Link>
 
             <Link
               href="/hypotheses/new"
-              className="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+              className="group flex items-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl hover:from-green-100 hover:to-green-200 transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-green-200"
             >
-              <span className="text-2xl mr-3">🧪</span>
+              <div className="bg-green-500 p-3 rounded-xl mr-4 group-hover:bg-green-600 transition-colors duration-300">
+                <span className="text-2xl text-white">🧪</span>
+              </div>
               <div>
-                <h3 className="font-medium text-green-900">Создать гипотезу</h3>
-                <p className="text-sm text-green-600">Сформулировать проверяемую гипотезу</p>
+                <h3 className="font-semibold text-green-900 group-hover:text-green-800">Создать гипотезу</h3>
+                <p className="text-sm text-green-600 mt-1">Сформулировать проверяемую гипотезу</p>
               </div>
             </Link>
 
             <Link
               href="/experiments/new"
-              className="flex items-center p-4 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"
+              className="group flex items-center p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl hover:from-orange-100 hover:to-orange-200 transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-orange-200"
             >
-              <span className="text-2xl mr-3">🔬</span>
+              <div className="bg-orange-500 p-3 rounded-xl mr-4 group-hover:bg-orange-600 transition-colors duration-300">
+                <span className="text-2xl text-white">🔬</span>
+              </div>
               <div>
-                <h3 className="font-medium text-orange-900">Запустить эксперимент</h3>
-                <p className="text-sm text-orange-600">Начать тестирование гипотезы</p>
+                <h3 className="font-semibold text-orange-900 group-hover:text-orange-800">Запустить эксперимент</h3>
+                <p className="text-sm text-orange-600 mt-1">Начать тестирование гипотезы</p>
               </div>
             </Link>
           </div>
@@ -219,61 +250,57 @@ export default function Dashboard() {
 
         {/* Recent Activity */}
         <div className="grid lg:grid-cols-2 gap-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Недавняя активность</h2>
-            <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                <div>
-                  <p className="text-sm text-gray-900">Гипотеза &quot;Увеличение конверсии&quot; подтверждена</p>
-                  <p className="text-xs text-gray-500">2 часа назад</p>
+          <RecentActivity />
+
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+              <span className="text-2xl mr-2">🔄</span>
+              HADI Циклы в работе
+            </h2>
+            <div className="space-y-6">
+              <div className="border-2 border-blue-200 rounded-xl p-5 bg-gradient-to-br from-blue-50 to-blue-100">
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="font-semibold text-gray-900 text-lg">Персонализация UX</h3>
+                  <div className="flex items-center space-x-2">
+                    <span className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-sm">Action</span>
+                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-700 mb-3 font-medium">
+                  Если добавить персональные рекомендации, то конверсия увеличится на 20%
+                </p>
+                <div className="flex items-center justify-between">
+                  <div className="text-xs text-gray-600 bg-white px-3 py-1 rounded-full">
+                    📊 Прогресс: MVP готов, начинаем A/B тест
+                  </div>
+                  <div className="text-xs text-blue-600 font-medium">80% готов</div>
                 </div>
               </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                <div>
-                  <p className="text-sm text-gray-900">Создан новый эксперимент &quot;A/B тест лендинга&quot;</p>
-                  <p className="text-xs text-gray-500">4 часа назад</p>
+
+              <div className="border-2 border-orange-200 rounded-xl p-5 bg-gradient-to-br from-orange-50 to-orange-100">
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="font-semibold text-gray-900 text-lg">Чат-бот поддержки</h3>
+                  <div className="flex items-center space-x-2">
+                    <span className="bg-orange-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-sm">Data</span>
+                    <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-                <div>
-                  <p className="text-sm text-gray-900">Добавлена идея &quot;Мобильное приложение&quot;</p>
-                  <p className="text-xs text-gray-500">1 день назад</p>
+                <p className="text-sm text-gray-700 mb-3 font-medium">
+                  Если внедрить чат-бот, то время отклика сократится на 50%
+                </p>
+                <div className="flex items-center justify-between">
+                  <div className="text-xs text-gray-600 bg-white px-3 py-1 rounded-full">
+                    📈 Прогресс: Собираем данные за 2 недели
+                  </div>
+                  <div className="text-xs text-orange-600 font-medium">45% готов</div>
                 </div>
               </div>
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">HADI Циклы в работе</h2>
-            <div className="space-y-4">
-              <div className="border rounded-lg p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-medium text-gray-900">Персонализация UX</h3>
-                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">Action</span>
-                </div>
-                <p className="text-sm text-gray-600 mb-2">
-                  Если добавить персональные рекомендации, то конверсия увеличится на 20%
-                </p>
-                <div className="text-xs text-gray-500">
-                  Прогресс: MVP готов, начинаем A/B тест
-                </div>
-              </div>
-
-              <div className="border rounded-lg p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-medium text-gray-900">Чат-бот поддержки</h3>
-                  <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded">Data</span>
-                </div>
-                <p className="text-sm text-gray-600 mb-2">
-                  Если внедрить чат-бот, то время отклика сократится на 50%
-                </p>
-                <div className="text-xs text-gray-500">
-                  Прогресс: Собираем данные за 2 недели
-                </div>
-              </div>
+            <div className="mt-6 text-center">
+              <Link href="/experiments" className="text-blue-600 hover:text-blue-800 text-sm font-medium inline-flex items-center">
+                Посмотреть все эксперименты
+                <span className="ml-1">→</span>
+              </Link>
             </div>
           </div>
         </div>

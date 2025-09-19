@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import ExportButton from "@/components/ui/ExportButton"
 
 interface Idea {
   id: string
@@ -122,6 +123,7 @@ export default function Ideas() {
               <div className="text-sm text-gray-600">
                 {session.user?.name || session.user?.email}
               </div>
+              <ExportButton type="ideas" />
               <Link
                 href="/ideas/new"
                 className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700"

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { logActivity, getActivityDescription } from "@/lib/activity"
 
 export async function GET(request: NextRequest) {
   try {
@@ -106,6 +107,15 @@ export async function POST(request: NextRequest) {
           }
         }
       }
+    })
+
+    // Log activity
+    await logActivity({
+      type: "CREATED",
+      description: getActivityDescription("CREATED", "idea", idea.title, session.user.email || ""),
+      entityType: "idea",
+      entityId: idea.id,
+      userId: session.user.id
     })
 
     return NextResponse.json(idea, { status: 201 })

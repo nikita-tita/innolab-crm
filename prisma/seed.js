@@ -168,6 +168,57 @@ async function main() {
 
   console.log('Эксперименты созданы:', experiments.length)
 
+  // Создание активностей
+  const activities = await Promise.all([
+    prisma.activity.create({
+      data: {
+        type: 'CREATED',
+        description: 'demo@innolab.com создал(а) идею "Мобильное приложение для клиентов"',
+        entityType: 'idea',
+        entityId: ideas[0].id,
+        userId: users[0].id,
+      },
+    }),
+    prisma.activity.create({
+      data: {
+        type: 'CREATED',
+        description: 'product@example.com создал(а) гипотезу "Мобильное приложение увеличит удержание"',
+        entityType: 'hypothesis',
+        entityId: hypotheses[0].id,
+        userId: users[1].id,
+      },
+    }),
+    prisma.activity.create({
+      data: {
+        type: 'EXPERIMENT_STARTED',
+        description: 'demo@innolab.com запустил(а) эксперимент "A/B тест мобильного приложения"',
+        entityType: 'experiment',
+        entityId: experiments[0].id,
+        userId: users[0].id,
+      },
+    }),
+    prisma.activity.create({
+      data: {
+        type: 'STATUS_CHANGED',
+        description: 'product@example.com изменил(а) статус гипотезы "Персонализация повысит конверсию"',
+        entityType: 'hypothesis',
+        entityId: hypotheses[1].id,
+        userId: users[1].id,
+      },
+    }),
+    prisma.activity.create({
+      data: {
+        type: 'COMMENT_ADDED',
+        description: 'analyst@example.com добавил(а) комментарий к идее "Чат-бот поддержки"',
+        entityType: 'idea',
+        entityId: ideas[2].id,
+        userId: users[3].id,
+      },
+    }),
+  ])
+
+  console.log('Активности созданы:', activities.length)
+
   console.log('База данных успешно заполнена!')
 }
 

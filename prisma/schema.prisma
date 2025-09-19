@@ -18,6 +18,7 @@ model User {
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
   accounts          Account[]
+  activities        Activity[]
   comments          Comment[]
   experiments       Experiment[] @relation("ExperimentCreator")
   createdHypotheses Hypothesis[] @relation("HypothesisCreator")
@@ -198,6 +199,18 @@ model Attachment {
   mvp       MVP?     @relation(fields: [mvpId], references: [id])
 }
 
+model Activity {
+  id           String        @id @default(cuid())
+  type         ActivityType
+  description  String
+  entityType   String        // "idea", "hypothesis", "experiment", "mvp"
+  entityId     String
+  userId       String
+  metadata     Json?         // Additional data about the activity
+  createdAt    DateTime      @default(now())
+  user         User          @relation(fields: [userId], references: [id])
+}
+
 enum UserRole {
   PRODUCT_MANAGER
   DESIGNER
@@ -263,4 +276,16 @@ enum MVPStatus {
   TESTING
   DEPLOYED
   ARCHIVED
+}
+
+enum ActivityType {
+  CREATED
+  UPDATED
+  DELETED
+  STATUS_CHANGED
+  COMMENT_ADDED
+  EXPERIMENT_STARTED
+  EXPERIMENT_COMPLETED
+  HYPOTHESIS_VALIDATED
+  HYPOTHESIS_INVALIDATED
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { logActivity, getActivityDescription } from "@/lib/activity"
 
 export async function GET(request: NextRequest) {
   try {
@@ -101,6 +102,39 @@ export async function POST(request: NextRequest) {
         }
       }
     })
+
+    // Determine entity type and get entity title for activity logging
+    let entityType = ""
+    let entityTitle = ""
+
+    if (ideaId) {
+      entityType = "idea"
+      const idea = await prisma.idea.findUnique({ where: { id: ideaId }, select: { title: true } })
+      entityTitle = idea?.title || "Unknown"
+    } else if (hypothesisId) {
+      entityType = "hypothesis"
+      const hypothesis = await prisma.hypothesis.findUnique({ where: { id: hypothesisId }, select: { title: true } })
+      entityTitle = hypothesis?.title || "Unknown"
+    } else if (experimentId) {
+      entityType = "experiment"
+      const experiment = await prisma.experiment.findUnique({ where: { id: experimentId }, select: { title: true } })
+      entityTitle = experiment?.title || "Unknown"
+    } else if (mvpId) {
+      entityType = "mvp"
+      const mvp = await prisma.mVP.findUnique({ where: { id: mvpId }, select: { title: true } })
+      entityTitle = mvp?.title || "Unknown"
+    }
+
+    // Log activity
+    if (entityType && entityTitle) {
+      await logActivity({
+        type: "COMMENT_ADDED",
+        description: getActivityDescription("COMMENT_ADDED", entityType, entityTitle, session.user.email || ""),
+        entityType,
+        entityId: ideaId || hypothesisId || experimentId || mvpId || "",
+        userId: session.user.id
+      })
+    }
 
     return NextResponse.json(comment, { status: 201 })
   } catch (error) {
