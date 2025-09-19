@@ -35,7 +35,7 @@ export default function Dashboard() {
         const experiments = experimentsRes.ok ? await experimentsRes.json() : []
 
         // Подсчет успешности на основе подтвержденных гипотез
-        const validatedHypotheses = hypotheses.filter((h: any) => h.status === 'VALIDATED')
+        const validatedHypotheses = hypotheses.filter((h: { status: string }) => h.status === 'VALIDATED')
         const successRate = hypotheses.length > 0
           ? Math.round((validatedHypotheses.length / hypotheses.length) * 100)
           : 0
