@@ -137,6 +137,10 @@ export default function Dashboard() {
               <span>📚</span>
               <span>База знаний</span>
             </Link>
+            <Link href="/lifecycle" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>🔄</span>
+              <span>Жизненный цикл</span>
+            </Link>
           </div>
         </div>
       </nav>

@@ -168,6 +168,148 @@ async function main() {
 
   console.log('Эксперименты созданы:', experiments.length)
 
+  // Создание критериев успеха для гипотез
+  const successCriteria = await Promise.all([
+    // Для первой гипотезы (мобильное приложение)
+    prisma.successCriteria.create({
+      data: {
+        name: 'Удержание пользователей',
+        description: 'Увеличение удержания через 30 дней',
+        targetValue: 25,
+        unit: '%',
+        hypothesisId: hypotheses[0].id,
+      },
+    }),
+    prisma.successCriteria.create({
+      data: {
+        name: 'Активность пользователей',
+        description: 'Увеличение DAU (Daily Active Users)',
+        targetValue: 30,
+        unit: '%',
+        hypothesisId: hypotheses[0].id,
+      },
+    }),
+    // Для второй гипотезы (персонализация)
+    prisma.successCriteria.create({
+      data: {
+        name: 'Конверсия',
+        description: 'Увеличение конверсии в покупку',
+        targetValue: 15,
+        unit: '%',
+        hypothesisId: hypotheses[1].id,
+      },
+    }),
+    prisma.successCriteria.create({
+      data: {
+        name: 'Время на сайте',
+        description: 'Увеличение времени пребывания на сайте',
+        targetValue: 20,
+        unit: '%',
+        hypothesisId: hypotheses[1].id,
+      },
+    }),
+  ])
+
+  console.log('Критерии успеха созданы:', successCriteria.length)
+
+  // Создание результатов экспериментов
+  const experimentResults = await Promise.all([
+    // Результаты для A/B теста мобильного приложения
+    prisma.experimentResult.create({
+      data: {
+        metricName: 'Удержание пользователей',
+        value: 28.5,
+        unit: '%',
+        notes: 'Превысили ожидания! Особенно хорошие результаты у пользователей 25-35 лет',
+        experimentId: experiments[0].id,
+      },
+    }),
+    prisma.experimentResult.create({
+      data: {
+        metricName: 'Активность пользователей (DAU)',
+        value: 35.2,
+        unit: '%',
+        notes: 'Увеличение активности благодаря push-уведомлениям',
+        experimentId: experiments[0].id,
+      },
+    }),
+    prisma.experimentResult.create({
+      data: {
+        metricName: 'NPS (Net Promoter Score)',
+        value: 67,
+        unit: 'баллы',
+        notes: 'Пользователи особенно отмечают удобство интерфейса',
+        experimentId: experiments[0].id,
+      },
+    }),
+    // Результаты для теста персонализации (пока частичные)
+    prisma.experimentResult.create({
+      data: {
+        metricName: 'Конверсия',
+        value: 12.3,
+        unit: '%',
+        notes: 'Результат пока ниже ожидаемого, но эксперимент еще идет',
+        experimentId: experiments[1].id,
+      },
+    }),
+  ])
+
+  console.log('Результаты экспериментов созданы:', experimentResults.length)
+
+  // Создание MVP
+  const mvps = await Promise.all([
+    // MVP для первого эксперимента (мобильное приложение)
+    prisma.mVP.create({
+      data: {
+        title: 'Beta-версия мобильного приложения',
+        description: 'Простая версия мобильного приложения с основными функциями для тестирования гипотезы об увеличении удержания пользователей',
+        type: 'PROTOTYPE',
+        status: 'DEVELOPMENT',
+        features: 'Авторизация, основной экран, push-уведомления, базовый профиль пользователя',
+        technicalSpecs: 'React Native, Firebase для push-уведомлений, REST API интеграция',
+        resources: 'Frontend разработчик, дизайнер UI/UX, QA инженер',
+        timeline: '3 недели разработки, 1 неделя тестирования',
+        successCriteria: 'Установка и активация приложения минимум 100 пользователями, удержание 25%+',
+        experimentId: experiments[0].id,
+        createdBy: users[0].id,
+      },
+    }),
+    // MVP для второго эксперимента (персонализация)
+    prisma.mVP.create({
+      data: {
+        title: 'Система персональных рекомендаций',
+        description: 'MVP системы рекомендаций на основе поведения пользователей для проверки влияния на конверсию',
+        type: 'DEMO',
+        status: 'TESTING',
+        features: 'Алгоритм collaborative filtering, виджет рекомендаций, A/B тестирование показов',
+        technicalSpecs: 'Python ML модель, Redis для кеширования, интеграция с основным сайтом',
+        resources: 'ML инженер, Backend разработчик, аналитик данных',
+        timeline: '2 недели разработки, 3 недели тестирования',
+        successCriteria: 'Увеличение конверсии на 15%, улучшение времени на сайте на 20%',
+        experimentId: experiments[1].id,
+        createdBy: users[1].id,
+      },
+    }),
+    // Дополнительный MVP в планировании
+    prisma.mVP.create({
+      data: {
+        title: 'Landing page для чат-бота',
+        description: 'Простая посадочная страница для демонстрации возможностей чат-бота поддержки',
+        type: 'LANDING_PAGE',
+        status: 'PLANNING',
+        features: 'Интерактивное демо чат-бота, форма обратной связи, описание возможностей',
+        technicalSpecs: 'HTML/CSS/JS, встроенный чат виджет, форма с email уведомлениями',
+        resources: 'Frontend разработчик, копирайтер, дизайнер',
+        timeline: '1 неделя разработки, 2 недели сбора обратной связи',
+        successCriteria: 'Минимум 50 заявок на тестирование, 70%+ положительных отзывов',
+        experimentId: experiments[0].id, // Привязываем к первому эксперименту для демо
+        createdBy: users[2].id,
+      },
+    }),
+  ])
+
+  console.log('MVP созданы:', mvps.length)
+
   // Создание активностей
   const activities = await Promise.all([
     prisma.activity.create({

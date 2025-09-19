@@ -3,6 +3,8 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import Comments from "@/components/ui/Comments"
 import AttachmentsPanel from "@/components/ui/AttachmentsPanel"
+import StatusControls from "./status-controls"
+import MVPProgressTracker from "@/components/ui/MVPProgressTracker"
 
 export default async function MVPDetails({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -46,6 +48,7 @@ export default async function MVPDetails({ params }: { params: Promise<{ id: str
             <span className="bg-gray-100 px-2 py-0.5 rounded">Тип: {mvp.type}</span>
             <span className="bg-gray-100 px-2 py-0.5 rounded">Статус: {mvp.status}</span>
           </div>
+          <StatusControls id={mvp.id} current={mvp.status} />
           <p className="text-gray-700 leading-7 whitespace-pre-wrap mb-4">{mvp.description}</p>
           {mvp.features && (
             <div className="mb-2 text-sm text-gray-700"><span className="font-medium">Функции:</span> {mvp.features}</div>
@@ -67,6 +70,14 @@ export default async function MVPDetails({ params }: { params: Promise<{ id: str
             <Link href="/mvps" className="border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50">
               Назад к списку
             </Link>
+          </div>
+
+          <div className="mt-8">
+            <MVPProgressTracker
+              mvpId={mvp.id}
+              currentStatus={mvp.status}
+              type={mvp.type}
+            />
           </div>
 
           <Comments mvpId={mvp.id} />

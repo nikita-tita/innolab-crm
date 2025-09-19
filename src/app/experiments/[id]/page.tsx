@@ -3,7 +3,8 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import Comments from "@/components/ui/Comments"
 import StatusControls from "./status-controls"
-import ExperimentResultsPanel from "@/components/ui/ExperimentResultsPanel"
+import ExperimentResults from "@/components/ui/ExperimentResults"
+import ExperimentAnalysis from "@/components/ui/ExperimentAnalysis"
 
 export default async function ExperimentDetails({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -11,9 +12,17 @@ export default async function ExperimentDetails({ params }: { params: Promise<{ 
     where: { id },
     include: {
       creator: { select: { id: true, name: true, email: true, role: true } },
-      hypothesis: { select: { id: true, title: true, idea: { select: { id: true, title: true } } } },
+      hypothesis: {
+        select: {
+          id: true,
+          title: true,
+          idea: { select: { id: true, title: true } },
+          successCriteria: true
+        }
+      },
       mvps: { select: { id: true, title: true, status: true, type: true } },
-      _count: { select: { mvps: true, comments: true } },
+      results: true,
+      _count: { select: { mvps: true, comments: true, results: true } },
     },
   })
 
@@ -92,8 +101,19 @@ export default async function ExperimentDetails({ params }: { params: Promise<{ 
             </Link>
           </div>
 
+          <div className="mt-8">
+            <ExperimentResults
+              experimentId={exp.id}
+              experimentTitle={exp.title}
+              successCriteria={exp.hypothesis.successCriteria}
+            />
+          </div>
+
+          <div className="mt-8">
+            <ExperimentAnalysis experimentId={exp.id} />
+          </div>
+
           <Comments experimentId={exp.id} />
-          <ExperimentResultsPanel experimentId={exp.id} />
         </div>
       </main>
     </div>
