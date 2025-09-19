@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -91,7 +92,7 @@ model Hypothesis {
 
   // Доп. поля для удобства UI
   testingMethod       String?
-  successCriteriaText String?
+  successCriteriaText String? @db.Text
 
   ideaId         String
   idea           Idea             @relation(fields: [ideaId], references: [id])
@@ -119,10 +120,10 @@ model Experiment {
   actualEndDate   DateTime?
 
   // Доп. поля для планирования эксперимента
-  methodology     String?
-  timeline        String?
-  resources       String?
-  successMetrics  String?
+  methodology     String? @db.Text
+  timeline        String? @db.Text
+  resources       String? @db.Text
+  successMetrics  String? @db.Text
 
   hypothesisId    String
   hypothesis      Hypothesis       @relation(fields: [hypothesisId], references: [id])
@@ -147,11 +148,11 @@ model MVP {
   status        MVPStatus    @default(PLANNING)
 
   // Доп. поля MVP
-  features       String?
-  technicalSpecs String?
-  resources      String?
-  timeline       String?
-  successCriteria String?
+  features       String? @db.Text
+  technicalSpecs String? @db.Text
+  resources      String? @db.Text
+  timeline       String? @db.Text
+  successCriteria String? @db.Text
 
   createdBy     String
   creator       User         @relation("MVPCreator", fields: [createdBy], references: [id], onDelete: Cascade)
