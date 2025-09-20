@@ -89,7 +89,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-white">InnoLab CRM</h1>
-                <p className="text-blue-100 text-sm">Система управления инновациями</p>
+                <p className="text-blue-100 text-sm">Система для запуска новых продуктов</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -131,9 +131,9 @@ export default function Dashboard() {
               <span>📚</span>
               <span>База знаний</span>
             </Link>
-            <Link href="/lifecycle" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+            <Link href="/workflow" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
               <span>🔄</span>
-              <span>Жизненный цикл</span>
+              <span>Воронка процесса</span>
             </Link>
           </div>
         </div>
