@@ -24,6 +24,7 @@ model User {
   createdHypotheses Hypothesis[] @relation("HypothesisCreator")
   createdIdeas      Idea[]       @relation("IdeaCreator")
   createdMVPs       MVP[]        @relation("MVPCreator")
+  lessons           Lesson[]
   sessions          Session[]
 }
 
@@ -68,6 +69,13 @@ model Idea {
   category    String?
   priority    Priority     @default(MEDIUM)
   status      IdeaStatus   @default(NEW)
+  // RICE scoring fields
+  reach       Int?         // Охват
+  impact      Int?         // Влияние (1-5)
+  confidence  Int?         // Уверенность (%)
+  effort      Int?         // Затраты (человеко-дни)
+  riceScore   Float?       // Автовычисляемый RICE score
+  context     String?      // Контекст возникновения идеи
   createdBy   String
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -80,18 +88,35 @@ model Hypothesis {
   id                  String            @id @default(cuid())
   title               String
   description         String?
-  statement           String
+  statement           String            // Формат "Если X, то Y, потому что Z"
   status              HypothesisStatus  @default(DRAFT)
   priority            Priority          @default(MEDIUM)
   confidenceLevel     Int               @default(50)
   testingMethod       String?
   successCriteriaText String?
+  // RICE scoring для гипотез
+  reach               Int?              // Охват эксперимента
+  impact              Int?              // Влияние при подтверждении (1-5)
+  confidence          Int?              // Уверенность (%)
+  effort              Int?              // Затраты на эксперимент
+  riceScore           Float?            // Автовычисляемый RICE score
+  // Дополнительные поля из методологии
+  targetAudience      String?           // Целевая аудитория/сегмент
+  userValue           String?           // Ценность для пользователя
+  businessImpact      String?           // Влияние на метрики
+  financialImpact     String?           // Финансовое обоснование
+  strategicAlignment  String?           // Связь с целями компании
+  // Desk Research
+  deskResearchNotes   String?           // Результаты кабинетного исследования
+  deskResearchSources String?           // Источники данных
+  deskResearchDate    DateTime?         // Дата проведения desk research
   ideaId              String
   createdBy           String
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
   comments            Comment[]
   experiments         Experiment[]
+  lessons             Lesson[]
   creator             User              @relation("HypothesisCreator", fields: [createdBy], references: [id])
   idea                Idea              @relation(fields: [ideaId], references: [id])
   successCriteria     SuccessCriteria[]
@@ -119,6 +144,7 @@ model Experiment {
   creator         User               @relation("ExperimentCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   hypothesis      Hypothesis         @relation(fields: [hypothesisId], references: [id])
   results         ExperimentResult[]
+  lessons         Lesson[]
   mvps            MVP[]
 }
 
@@ -211,6 +237,45 @@ model Activity {
   user         User          @relation(fields: [userId], references: [id])
 }
 
+model HypothesisTemplate {
+  id          String   @id @default(cuid())
+  name        String   // Название шаблона
+  category    String   // Категория (маркетинг, продукт, процесс)
+  template    String   // Шаблон "Если X, то Y, потому что Z"
+  description String?  // Описание когда использовать
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Lesson {
+  id              String   @id @default(cuid())
+  title           String
+  content         String   // Описание урока
+  category        String   // Категория урока
+  tags            String[] // Теги для поиска
+  hypothesisId    String?  // Связь с гипотезой
+  experimentId    String?  // Связь с экспериментом
+  userId          String   // Автор урока
+  isPublic        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id])
+  hypothesis      Hypothesis? @relation(fields: [hypothesisId], references: [id])
+  experiment      Experiment? @relation(fields: [experimentId], references: [id])
+}
+
+model WorkflowStage {
+  id          String   @id @default(cuid())
+  name        String   // Название этапа
+  description String?  // Описание этапа
+  order       Int      // Порядок в воронке
+  entityType  String   // "idea" или "hypothesis"
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 enum UserRole {
   PRODUCT_MANAGER
   DESIGNER
@@ -228,20 +293,24 @@ enum Priority {
 }
 
 enum IdeaStatus {
-  NEW
-  IN_REVIEW
-  APPROVED
-  IN_DEVELOPMENT
-  ARCHIVED
+  NEW                // Новая идея (Банк идей)
+  SCORED             // Прошла RICE-скоринг
+  SELECTED           // Отобрана для проработки
+  IN_HYPOTHESIS      // Формулируется гипотеза
+  COMPLETED          // Преобразована в гипотезу(ы)
+  ARCHIVED           // Архивирована
 }
 
 enum HypothesisStatus {
-  DRAFT
-  READY_FOR_TESTING
-  IN_EXPERIMENT
-  VALIDATED
-  INVALIDATED
-  ARCHIVED
+  DRAFT              // Черновик гипотезы
+  SCORED             // Прошла RICE-скоринг
+  DESK_RESEARCH      // Проводится Desk Research
+  READY_FOR_TESTING  // Готова к эксперименту
+  IN_EXPERIMENT      // В процессе эксперимента
+  VALIDATED          // Подтверждена
+  INVALIDATED        // Опровергнута
+  INCONCLUSIVE       // Результат неоднозначен
+  ARCHIVED           // Архивирована
 }
 
 enum ExperimentStatus {
@@ -253,12 +322,16 @@ enum ExperimentStatus {
 }
 
 enum ExperimentType {
-  USER_INTERVIEW
-  AB_TEST
-  PROTOTYPE_TEST
-  SURVEY
-  MARKET_RESEARCH
-  OTHER
+  USER_INTERVIEW     // Глубинные интервью
+  AB_TEST           // A/B тестирование
+  PROTOTYPE_TEST    // Тестирование прототипа
+  MVP_TEST          // Тестирование MVP
+  SURVEY            // Опросы
+  MARKET_RESEARCH   // Исследование рынка
+  WIZARD_OF_OZ      // Имитация процесса
+  LANDING_PAGE      // Тест лендинга
+  DATA_ANALYSIS     // Анализ данных
+  OTHER             // Другое
 }
 
 enum MVPType {

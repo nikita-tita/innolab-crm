@@ -4,6 +4,12 @@ import { useSession } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
+import { HypothesisTemplates } from "@/components/ui/hypothesis-templates"
+import { RiceScoring } from "@/components/ui/rice-scoring"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Lightbulb, Calculator, FileText } from "lucide-react"
 
 interface Idea {
   id: string
@@ -19,12 +25,19 @@ function NewHypothesisInner() {
   const [formData, setFormData] = useState({
     title: "",
     statement: "",
+    description: "",
     ideaId: ideaId || "",
     priority: "MEDIUM",
     confidenceLevel: 70,
     testingMethod: "",
-    successCriteria: ""
+    successCriteria: "",
+    reach: 0,
+    impact: 1,
+    confidence: 50,
+    effort: 1,
+    riceScore: 0
   })
+  const [activeTab, setActiveTab] = useState("basic")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [ideas, setIdeas] = useState<Idea[]>([])
   const [loadingIdeas, setLoadingIdeas] = useState(true)
@@ -94,6 +107,35 @@ function NewHypothesisInner() {
     }))
   }
 
+  const handleTemplateSelect = (template: any, variables: Record<string, string>) => {
+    // Заполняем данные из шаблона
+    let statement = template.template;
+    Object.entries(variables).forEach(([variable, value]) => {
+      statement = statement.replace(`{${variable}}`, value);
+    });
+
+    setFormData(prev => ({
+      ...prev,
+      title: template.name + " - " + Object.values(variables).slice(0, 2).join(", "),
+      statement: statement,
+      description: template.description
+    }));
+
+    // Переходим на вкладку основной информации
+    setActiveTab("basic");
+  }
+
+  const handleRiceScoreChange = (score: number, values: any) => {
+    setFormData(prev => ({
+      ...prev,
+      reach: values.reach,
+      impact: values.impact,
+      confidence: values.confidence,
+      effort: values.effort,
+      riceScore: score
+    }));
+  }
+
   if (status === "loading" || loadingIdeas) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -148,7 +190,7 @@ function NewHypothesisInner() {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="mb-6">
             <nav className="flex" aria-label="Breadcrumb">
@@ -168,12 +210,35 @@ function NewHypothesisInner() {
             </nav>
             <h1 className="mt-4 text-2xl font-bold text-gray-900">Создать новую гипотезу</h1>
             <p className="mt-2 text-gray-600">
-              Сформулируйте проверяемое предположение на основе идеи. Хорошая гипотеза содержит четкое утверждение и критерии успеха.
+              Используйте шаблоны или создайте гипотезу с нуля в формате "Если X, то Y, потому что Z"
             </p>
           </div>
 
-          <div className="bg-white shadow rounded-lg">
-            <form onSubmit={handleSubmit} className="space-y-6 p-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="templates">
+                <Lightbulb className="h-4 w-4 mr-2" />
+                Шаблоны
+              </TabsTrigger>
+              <TabsTrigger value="basic">
+                <FileText className="h-4 w-4 mr-2" />
+                Основная информация
+              </TabsTrigger>
+              <TabsTrigger value="rice">
+                <Calculator className="h-4 w-4 mr-2" />
+                RICE Scoring
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="templates">
+              <HypothesisTemplates
+                onCreateFromTemplate={handleTemplateSelect}
+              />
+            </TabsContent>
+
+            <TabsContent value="basic">
+              <div className="bg-white shadow rounded-lg">
+                <form onSubmit={handleSubmit} className="space-y-6 p-6">
               <div>
                 <label htmlFor="ideaId" className="block text-sm font-medium text-gray-700 mb-2">
                   Связанная идея *
@@ -208,6 +273,21 @@ function NewHypothesisInner() {
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Краткое название гипотезы"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                  Описание
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  rows={3}
+                  value={formData.description}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Детальное описание гипотезы и контекста"
                 />
               </div>
 
@@ -330,10 +410,22 @@ function NewHypothesisInner() {
               </div>
             </form>
           </div>
-        </div>
-      </main>
+        </TabsContent>
+
+        <TabsContent value="rice">
+          <RiceScoring
+            reach={formData.reach}
+            impact={formData.impact}
+            confidence={formData.confidence}
+            effort={formData.effort}
+            onScoreChange={handleRiceScoreChange}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
-  )
+  </main>
+</div>
+)
 }
 
 export default function NewHypothesis() {

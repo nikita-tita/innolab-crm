@@ -72,10 +72,10 @@ export default function Home() {
               🚀 Открыть систему
             </Link>
             <Link
-              href="/lifecycle"
+              href="/workflow"
               className="bg-green-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
             >
-              📊 Посмотреть Lifecycle
+              📊 Воронка процесса
             </Link>
             <Link
               href="/auth/signin"
