@@ -94,13 +94,7 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-sm text-blue-100">
-                Добро пожаловать, <span className="text-white font-medium">{session.user?.name || session.user?.email}</span>
-              </div>
-              <div className="text-xs bg-white bg-opacity-20 text-white px-3 py-1 rounded-full font-medium">
-                {session.user?.role || 'USER'}
-              </div>
-              <div className="border-l border-white border-opacity-30 pl-4">
-                <ExportButton type="all" className="[&>div>button]:bg-white [&>div>button]:bg-opacity-20 [&>div>button]:text-white [&>div>button]:border-white [&>div>button]:border-opacity-30 [&>div>button:hover]:bg-opacity-30" />
+                Привет, <span className="text-white font-medium">{session.user?.name || session.user?.email}</span>
               </div>
               <button
                 onClick={() => signOut()}
@@ -148,7 +142,7 @@ export default function Dashboard() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
             <div className="flex items-center">
               <div className="p-3 bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl shadow-md">
@@ -157,7 +151,6 @@ export default function Dashboard() {
               <div className="ml-4">
                 <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Идеи</h3>
                 <p className="text-3xl font-bold text-gray-900 mt-1">{stats.ideas}</p>
-                <p className="text-xs text-green-600 mt-1">+2 за неделю</p>
               </div>
             </div>
           </div>
@@ -170,7 +163,6 @@ export default function Dashboard() {
               <div className="ml-4">
                 <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Гипотезы</h3>
                 <p className="text-3xl font-bold text-gray-900 mt-1">{stats.hypotheses}</p>
-                <p className="text-xs text-blue-600 mt-1">1 в работе</p>
               </div>
             </div>
           </div>
@@ -183,22 +175,6 @@ export default function Dashboard() {
               <div className="ml-4">
                 <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Эксперименты</h3>
                 <p className="text-3xl font-bold text-gray-900 mt-1">{stats.experiments}</p>
-                <p className="text-xs text-orange-600 mt-1">1 активный</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
-            <div className="flex items-center">
-              <div className="p-3 bg-gradient-to-br from-purple-400 to-purple-500 rounded-xl shadow-md">
-                <span className="text-2xl filter drop-shadow-sm">📊</span>
-              </div>
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Успешность</h3>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.successRate}%</p>
-                <p className={`text-xs mt-1 ${stats.successRate >= 50 ? 'text-green-600' : 'text-red-600'}`}>
-                  {stats.successRate >= 50 ? 'Хороший результат' : 'Нужно улучшить'}
-                </p>
               </div>
             </div>
           </div>
@@ -253,60 +229,12 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Activity */}
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+            <span className="text-2xl mr-2">📋</span>
+            Последние обновления
+          </h2>
           <RecentActivity />
-
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-              <span className="text-2xl mr-2">🔄</span>
-              HADI Циклы в работе
-            </h2>
-            <div className="space-y-6">
-              <div className="border-2 border-blue-200 rounded-xl p-5 bg-gradient-to-br from-blue-50 to-blue-100">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="font-semibold text-gray-900 text-lg">Персонализация UX</h3>
-                  <div className="flex items-center space-x-2">
-                    <span className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-sm">Action</span>
-                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-700 mb-3 font-medium">
-                  Если добавить персональные рекомендации, то конверсия увеличится на 20%
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="text-xs text-gray-600 bg-white px-3 py-1 rounded-full">
-                    📊 Прогресс: MVP готов, начинаем A/B тест
-                  </div>
-                  <div className="text-xs text-blue-600 font-medium">80% готов</div>
-                </div>
-              </div>
-
-              <div className="border-2 border-orange-200 rounded-xl p-5 bg-gradient-to-br from-orange-50 to-orange-100">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="font-semibold text-gray-900 text-lg">Чат-бот поддержки</h3>
-                  <div className="flex items-center space-x-2">
-                    <span className="bg-orange-500 text-white text-xs px-3 py-1 rounded-full font-medium shadow-sm">Data</span>
-                    <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-700 mb-3 font-medium">
-                  Если внедрить чат-бот, то время отклика сократится на 50%
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="text-xs text-gray-600 bg-white px-3 py-1 rounded-full">
-                    📈 Прогресс: Собираем данные за 2 недели
-                  </div>
-                  <div className="text-xs text-orange-600 font-medium">45% готов</div>
-                </div>
-              </div>
-            </div>
-            <div className="mt-6 text-center">
-              <Link href="/experiments" className="text-blue-600 hover:text-blue-800 text-sm font-medium inline-flex items-center">
-                Посмотреть все эксперименты
-                <span className="ml-1">→</span>
-              </Link>
-            </div>
-          </div>
         </div>
       </main>
     </div>

@@ -189,29 +189,12 @@ export default function WorkflowPage() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      {/* Заголовок и навигация */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Воронка процесса</h1>
-          <p className="text-gray-600 mt-2">
-            Управление жизненным циклом идей и гипотез
-          </p>
-        </div>
-
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            Фильтры
-          </Button>
-          <Button variant="outline" size="sm">
-            <Settings className="h-4 w-4 mr-2" />
-            Настройки
-          </Button>
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Добавить
-          </Button>
-        </div>
+      {/* Заголовок */}
+      <div className="text-center">
+        <h1 className="text-3xl font-bold">Процесс работы</h1>
+        <p className="text-gray-600 mt-2">
+          Простое управление идеями и гипотезами
+        </p>
       </div>
 
       {/* Переключатель вкладок */}
@@ -242,34 +225,6 @@ export default function WorkflowPage() {
         </CardContent>
       </Card>
 
-      {/* Описание текущего этапа */}
-      <Card>
-        <CardContent className="p-4">
-          {activeTab === "ideas" ? (
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Этапы работы с идеями</h3>
-              <ol className="text-sm text-gray-600 space-y-1">
-                <li><strong>1. Банк идей:</strong> Сбор и фиксация всех идей команды</li>
-                <li><strong>2. RICE-скоринг:</strong> Приоритизация по формуле (Reach × Impact × Confidence) ÷ Effort</li>
-                <li><strong>3. Отобранные:</strong> Идеи с высоким приоритетом, готовые к проработке</li>
-                <li><strong>4. В разработке:</strong> Формулирование проверяемых гипотез на основе идей</li>
-              </ol>
-            </div>
-          ) : (
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Этапы работы с гипотезами</h3>
-              <ol className="text-sm text-gray-600 space-y-1">
-                <li><strong>1. Черновики:</strong> Формулировка в формате "Если X, то Y, потому что Z"</li>
-                <li><strong>2. RICE-оценка:</strong> Приоритизация экспериментов</li>
-                <li><strong>3. Desk Research:</strong> Кабинетные исследования и анализ данных</li>
-                <li><strong>4. Готовы к тесту:</strong> Планирование экспериментов</li>
-                <li><strong>5. В эксперименте:</strong> Проведение и мониторинг тестов</li>
-                <li><strong>6. Завершены:</strong> Анализ результатов и принятие решений</li>
-              </ol>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Канбан-доска */}
       <KanbanBoard
@@ -280,53 +235,6 @@ export default function WorkflowPage() {
         showRiceScore={true}
       />
 
-      {/* Статистика */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-blue-600">
-              {stages.reduce((sum, stage) => sum + stage.items.length, 0)}
-            </div>
-            <div className="text-sm text-gray-600">
-              Всего {activeTab === "ideas" ? "идей" : "гипотез"}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">
-              {stages.find(s => s.id === "completed" || s.id === "in_hypothesis")?.items.length || 0}
-            </div>
-            <div className="text-sm text-gray-600">
-              {activeTab === "ideas" ? "Завершенных" : "В работе"}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-orange-600">
-              {stages.find(s => s.id === "in_experiment" || s.id === "scored")?.items.length || 0}
-            </div>
-            <div className="text-sm text-gray-600">
-              {activeTab === "ideas" ? "На оценке" : "В эксперименте"}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-purple-600">
-              {((stages.find(s => s.id === "completed")?.items.length || 0) /
-                Math.max(1, stages.reduce((sum, stage) => sum + stage.items.length, 0)) * 100).toFixed(0)}%
-            </div>
-            <div className="text-sm text-gray-600">
-              Коэффициент завершения
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }
