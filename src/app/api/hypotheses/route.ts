@@ -5,11 +5,11 @@ import { prisma } from "@/lib/prisma"
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    // Allow public access for demo purposes
+    // const session = await getServerSession(authOptions)
+    // if (!session) {
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    // }
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
@@ -71,11 +71,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Allow demo access without authentication
     const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
 
     const body = await request.json()
     const {
@@ -95,10 +92,51 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Проверяем существование идеи
-    const idea = await prisma.idea.findUnique({
+    // Create or get demo user
+    let userId = session?.user?.id || 'demo-user-id'
+
+    // Ensure demo user exists
+    let user = await prisma.user.findUnique({ where: { id: userId } })
+    if (!user) {
+      try {
+        user = await prisma.user.create({
+          data: {
+            id: userId,
+            email: 'demo@innolab.com',
+            name: 'Demo User',
+            role: 'PRODUCT_MANAGER',
+          }
+        })
+      } catch (error: any) {
+        // User might already exist with different ID but same email
+        if (error.code === 'P2002') {
+          user = await prisma.user.findUnique({ where: { email: 'demo@innolab.com' } })
+          if (user) {
+            userId = user.id
+          }
+        } else {
+          throw error
+        }
+      }
+    }
+
+    // Check if idea exists, create demo idea if not
+    let idea = await prisma.idea.findUnique({
       where: { id: ideaId }
     })
+
+    if (!idea && ideaId === "demo-idea-id") {
+      idea = await prisma.idea.create({
+        data: {
+          id: ideaId,
+          title: "Демо идея",
+          description: "Базовая идея для демонстрации",
+          status: "NEW",
+          priority: "MEDIUM",
+          createdBy: userId
+        }
+      })
+    }
 
     if (!idea) {
       return NextResponse.json(
@@ -117,7 +155,7 @@ export async function POST(request: NextRequest) {
         testingMethod: testingMethod?.trim() || null,
         successCriteriaText: successCriteriaText?.trim() || null,
         status: "DRAFT",
-        createdBy: session.user.id
+        createdBy: userId
       },
       include: {
         creator: {

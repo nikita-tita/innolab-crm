@@ -322,45 +322,50 @@ export default function SimpleDashboard() {
         {/* Items list */}
         <div className="space-y-2">
           {filteredItems.map((item) => (
-            <Card key={item.id} className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  <div className={`p-2 rounded-lg ${getTypeColor(item.type)}`}>
-                    {getTypeIcon(item.type)}
-                  </div>
-
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-medium text-gray-900">{item.title}</h3>
-                      {item.priority && (
-                        <Badge className={`text-xs ${getPriorityColor(item.priority)}`}>
-                          {item.priority === "high" && "Высокий"}
-                          {item.priority === "medium" && "Средний"}
-                          {item.priority === "low" && "Низкий"}
-                        </Badge>
-                      )}
+            <Link
+              key={item.id}
+              href={`/${item.type === "idea" ? "ideas" : item.type === "hypothesis" ? "hypotheses" : "experiments"}/${item.id}`}
+            >
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    <div className={`p-2 rounded-lg ${getTypeColor(item.type)}`}>
+                      {getTypeIcon(item.type)}
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <span>{item.status}</span>
-                      <span>•</span>
-                      <span>{item.assignee}</span>
-                      <span>•</span>
-                      <span>{item.updatedAt}</span>
-                      {item.riceScore && (
-                        <>
-                          <span>•</span>
-                          <span className="font-medium">RICE: {item.riceScore}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
 
-                  <Button variant="ghost" size="sm">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-medium text-gray-900">{item.title}</h3>
+                        {item.priority && (
+                          <Badge className={`text-xs ${getPriorityColor(item.priority)}`}>
+                            {item.priority === "high" && "Высокий"}
+                            {item.priority === "medium" && "Средний"}
+                            {item.priority === "low" && "Низкий"}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <span>{item.status}</span>
+                        <span>•</span>
+                        <span>{item.assignee}</span>
+                        <span>•</span>
+                        <span>{item.updatedAt}</span>
+                        {item.riceScore && (
+                          <>
+                            <span>•</span>
+                            <span className="font-medium">RICE: {item.riceScore}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <Button variant="ghost" size="sm">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
 
