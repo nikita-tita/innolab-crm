@@ -10,10 +10,36 @@ export default function SimpleIdeaPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
-  const handleSubmit = () => {
-    // В реальном приложении здесь будет API вызов
-    console.log("Создание идеи:", { title, description });
-    alert("Идея сохранена! (это демо)");
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch('/api/ideas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim(),
+          status: 'NEW',
+          priority: 'MEDIUM'
+        }),
+      });
+
+      if (response.ok) {
+        alert("✅ Идея успешно сохранена!");
+        setTitle("");
+        setDescription("");
+        // Редирект на dashboard через 1 секунду
+        setTimeout(() => {
+          window.location.href = "/simple-dashboard";
+        }, 1000);
+      } else {
+        throw new Error('Ошибка сохранения');
+      }
+    } catch (error) {
+      console.error('Ошибка:', error);
+      alert("❌ Ошибка сохранения. Попробуйте еще раз.");
+    }
   };
 
   return (

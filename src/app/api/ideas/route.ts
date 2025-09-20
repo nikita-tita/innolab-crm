@@ -6,11 +6,11 @@ import { logActivity, getActivityDescription } from "@/lib/activity"
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    // Allow public access for demo purposes
+    // const session = await getServerSession(authOptions)
+    // if (!session) {
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    // }
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
@@ -66,11 +66,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Allow demo access without authentication
     const session = await getServerSession(authOptions)
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
 
     const body = await request.json()
     const { title, description, category, priority = "MEDIUM" } = body
@@ -82,6 +79,34 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Create or get demo user
+    let userId = session?.user?.id || 'demo-user-id'
+
+    // Ensure demo user exists
+    let user = await prisma.user.findUnique({ where: { id: userId } })
+    if (!user) {
+      try {
+        user = await prisma.user.create({
+          data: {
+            id: userId,
+            email: 'demo@innolab.com',
+            name: 'Demo User',
+            role: 'PRODUCT_MANAGER',
+          }
+        })
+      } catch (error: any) {
+        // User might already exist with different ID but same email
+        if (error.code === 'P2002') {
+          user = await prisma.user.findUnique({ where: { email: 'demo@innolab.com' } })
+          if (user) {
+            userId = user.id
+          }
+        } else {
+          throw error
+        }
+      }
+    }
+
     const idea = await prisma.idea.create({
       data: {
         title: title.trim(),
@@ -89,7 +114,7 @@ export async function POST(request: NextRequest) {
         category: category?.trim() || null,
         priority,
         status: "NEW",
-        createdBy: session.user.id
+        createdBy: userId
       },
       include: {
         creator: {
@@ -109,14 +134,20 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Log activity
-    await logActivity({
-      type: "CREATED",
-      description: getActivityDescription("CREATED", "idea", idea.title, session.user.email || ""),
-      entityType: "idea",
-      entityId: idea.id,
-      userId: session.user.id
-    })
+    // Log activity only if user is authenticated
+    if (session?.user?.id) {
+      try {
+        await logActivity({
+          type: "CREATED",
+          description: getActivityDescription("CREATED", "idea", idea.title, session.user.email || ""),
+          entityType: "idea",
+          entityId: idea.id,
+          userId: session.user.id
+        })
+      } catch (error) {
+        console.warn("Could not log activity:", error)
+      }
+    }
 
     return NextResponse.json(idea, { status: 201 })
   } catch (error) {

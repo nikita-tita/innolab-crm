@@ -14,7 +14,7 @@ export default function Home() {
               <span className="font-medium text-gray-900">InnoLab</span>
             </div>
             <Link
-              href="/simple-dashboard"
+              href="/auth/signin"
               className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
             >
               Войти
@@ -34,7 +34,7 @@ export default function Home() {
             Проверяйте гипотезы быстро и дёшево, прежде чем вкладывать большие ресурсы.
           </p>
           <Link
-            href="/simple-dashboard"
+            href="/auth/signin"
             className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
           >
             Начать бесплатно →
@@ -120,12 +120,12 @@ export default function Home() {
         {/* CTA */}
         <div className="text-center">
           <Link
-            href="/simple-dashboard"
+            href="/auth/signin"
             className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
           >
             Попробовать сейчас
           </Link>
-          <p className="text-gray-500 text-sm mt-4">Бесплатно • Без регистрации • Начните за 2 минуты</p>
+          <p className="text-gray-500 text-sm mt-4">Бесплатно • Демо-доступ • Начните за 2 минуты</p>
         </div>
       </div>
     </div>

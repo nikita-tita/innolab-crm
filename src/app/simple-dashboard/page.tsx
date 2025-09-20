@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,49 +32,134 @@ interface WorkspaceItem {
 export default function SimpleDashboard() {
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [workspaceItems, setWorkspaceItems] = useState<WorkspaceItem[]>([]);
+  const [stats, setStats] = useState({
+    ideas: 0,
+    hypotheses: 0,
+    experiments: 0,
+    successRate: 0
+  });
 
-  // Mock data
-  const workspaceItems: WorkspaceItem[] = [
-    {
-      id: "1",
-      title: "Сервис аренды автомобилей по подписке",
-      type: "idea",
-      status: "В работе",
-      priority: "high",
-      updatedAt: "2 часа назад",
-      assignee: "Мария К.",
-      riceScore: 15.2
-    },
-    {
-      id: "2",
-      title: "Если запустить MVP каршеринга, то 500+ пользователей подпишутся",
-      type: "hypothesis",
-      status: "Тестирование",
-      priority: "high",
-      updatedAt: "1 день назад",
-      assignee: "Алексей И.",
-      riceScore: 12.8
-    },
-    {
-      id: "3",
-      title: "AI-помощник для малого бизнеса",
-      type: "idea",
-      status: "Новая",
-      priority: "medium",
-      updatedAt: "3 дня назад",
-      assignee: "Ольга П.",
-      riceScore: 13.4
-    },
-    {
-      id: "4",
-      title: "Landing Page - каршеринг по подписке",
-      type: "experiment",
-      status: "Завершен",
-      priority: "high",
-      updatedAt: "1 неделя назад",
-      assignee: "Мария К."
+  // Загрузка данных
+  const fetchData = async () => {
+    try {
+      const [ideasRes, hypothesesRes, experimentsRes] = await Promise.all([
+        fetch('/api/ideas'),
+        fetch('/api/hypotheses'),
+        fetch('/api/experiments')
+      ]);
+
+      const ideas = ideasRes.ok ? await ideasRes.json() : [];
+      const hypotheses = hypothesesRes.ok ? await hypothesesRes.json() : [];
+      const experiments = experimentsRes.ok ? await experimentsRes.json() : [];
+
+      // Формируем items для workspace
+      const items: WorkspaceItem[] = [
+        ...ideas.map((idea: any) => ({
+          id: idea.id,
+          title: idea.title,
+          type: "idea" as const,
+          status: idea.status || "Новая",
+          priority: idea.priority?.toLowerCase(),
+          updatedAt: "недавно",
+          assignee: idea.author || "Неизвестно",
+          riceScore: idea.riceScore
+        })),
+        ...hypotheses.map((hyp: any) => ({
+          id: hyp.id,
+          title: hyp.hypothesis,
+          type: "hypothesis" as const,
+          status: hyp.status || "Новая",
+          priority: hyp.priority?.toLowerCase(),
+          updatedAt: "недавно",
+          assignee: hyp.author || "Неизвестно",
+          riceScore: hyp.riceScore
+        })),
+        ...experiments.map((exp: any) => ({
+          id: exp.id,
+          title: exp.name,
+          type: "experiment" as const,
+          status: exp.status || "Новый",
+          priority: exp.priority?.toLowerCase(),
+          updatedAt: "недавно",
+          assignee: exp.author || "Неизвестно"
+        }))
+      ];
+
+      setWorkspaceItems(items);
+
+      // Статистика
+      const validatedHypotheses = hypotheses.filter((h: any) => h.status === 'VALIDATED');
+      const successRate = hypotheses.length > 0
+        ? Math.round((validatedHypotheses.length / hypotheses.length) * 100)
+        : 0;
+
+      setStats({
+        ideas: ideas.length,
+        hypotheses: hypotheses.length,
+        experiments: experiments.length,
+        successRate
+      });
+
+    } catch (error) {
+      console.error('Ошибка загрузки данных:', error);
+      // Fallback к моковым данным
+      const mockItems: WorkspaceItem[] = [
+        {
+          id: "1",
+          title: "Сервис аренды автомобилей по подписке",
+          type: "idea",
+          status: "В работе",
+          priority: "high",
+          updatedAt: "2 часа назад",
+          assignee: "Мария К.",
+          riceScore: 15.2
+        },
+        {
+          id: "2",
+          title: "Если запустить MVP каршеринга, то 500+ пользователей подпишутся",
+          type: "hypothesis",
+          status: "Тестирование",
+          priority: "high",
+          updatedAt: "1 день назад",
+          assignee: "Алексей И.",
+          riceScore: 12.8
+        },
+        {
+          id: "3",
+          title: "AI-помощник для малого бизнеса",
+          type: "idea",
+          status: "Новая",
+          priority: "medium",
+          updatedAt: "3 дня назад",
+          assignee: "Ольга П.",
+          riceScore: 13.4
+        },
+        {
+          id: "4",
+          title: "Landing Page - каршеринг по подписке",
+          type: "experiment",
+          status: "Завершен",
+          priority: "high",
+          updatedAt: "1 неделя назад",
+          assignee: "Мария К."
+        }
+      ];
+
+      setWorkspaceItems(mockItems);
+      setStats({
+        ideas: 3,
+        hypotheses: 3,
+        experiments: 2,
+        successRate: 67
+      });
     }
-  ];
+  };
+
+  // Загружаем данные при монтировании
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -145,7 +230,7 @@ export default function SimpleDashboard() {
               <div className="flex items-center gap-2">
                 <Lightbulb className="h-5 w-5 text-blue-600" />
                 <div>
-                  <div className="text-2xl font-bold">8</div>
+                  <div className="text-2xl font-bold">{stats.ideas}</div>
                   <div className="text-sm text-gray-600">Идей</div>
                 </div>
               </div>
@@ -157,7 +242,7 @@ export default function SimpleDashboard() {
               <div className="flex items-center gap-2">
                 <Target className="h-5 w-5 text-purple-600" />
                 <div>
-                  <div className="text-2xl font-bold">5</div>
+                  <div className="text-2xl font-bold">{stats.hypotheses}</div>
                   <div className="text-sm text-gray-600">Гипотез</div>
                 </div>
               </div>
@@ -169,7 +254,7 @@ export default function SimpleDashboard() {
               <div className="flex items-center gap-2">
                 <FlaskConical className="h-5 w-5 text-green-600" />
                 <div>
-                  <div className="text-2xl font-bold">3</div>
+                  <div className="text-2xl font-bold">{stats.experiments}</div>
                   <div className="text-sm text-gray-600">Экспериментов</div>
                 </div>
               </div>
@@ -181,7 +266,7 @@ export default function SimpleDashboard() {
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-orange-600" />
                 <div>
-                  <div className="text-2xl font-bold">67%</div>
+                  <div className="text-2xl font-bold">{stats.successRate}%</div>
                   <div className="text-sm text-gray-600">Успешность</div>
                 </div>
               </div>
@@ -310,6 +395,39 @@ export default function SimpleDashboard() {
               </CardContent>
             </Card>
           </Link>
+        </div>
+
+        {/* Additional Tools */}
+        <div className="mt-8 grid md:grid-cols-2 gap-6">
+          <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+            <CardContent className="p-6 text-center">
+              <h3 className="font-medium text-gray-900 mb-2">📚 Изучите методологию</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Узнайте, как правильно тестировать идеи и принимать решения на основе данных
+              </p>
+              <Link href="/methodology">
+                <Button variant="outline" className="gap-2">
+                  <Target className="h-4 w-4" />
+                  Открыть методологию
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+            <CardContent className="p-6 text-center">
+              <h3 className="font-medium text-gray-900 mb-2">🎯 Критерии успеха</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Определите четкие метрики для оценки успешности ваших экспериментов
+              </p>
+              <Link href="/success-criteria">
+                <Button variant="outline" className="gap-2">
+                  <CheckCircle className="h-4 w-4" />
+                  Настроить критерии
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
