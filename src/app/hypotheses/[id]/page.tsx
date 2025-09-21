@@ -76,7 +76,19 @@ export default async function HypothesisDetails({ params }: { params: Promise<{ 
               <HADIStepper current={hypothesis.status === 'DRAFT' ? 'H' : hypothesis.status === 'IN_EXPERIMENT' || hypothesis.status === 'READY_FOR_TESTING' ? 'A' : hypothesis.status === 'VALIDATED' || hypothesis.status === 'INVALIDATED' ? 'I' : 'D'} />
 
               <div className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
+                <h3 className="font-medium text-blue-900 mb-2">🔬 Формулировка гипотезы</h3>
                 <p className="text-gray-700 leading-7 whitespace-pre-wrap">{hypothesis.statement}</p>
+              </div>
+
+              {/* Подсказки по работе с гипотезой */}
+              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md">
+                <h3 className="text-sm font-medium text-amber-900 mb-2">💡 Как работать с гипотезой:</h3>
+                <div className="text-sm text-amber-700 space-y-1">
+                  <p>• <strong>Запланируйте и выполните эксперимент</strong> - переходите на вкладку "Эксперименты"</p>
+                  <p>• <strong>Desk Research</strong> - изучите существующие данные и источники</p>
+                  <p>• <strong>RICE Scoring</strong> - оцените приоритет для тестирования</p>
+                  <p>• <strong>Критерии успеха</strong> - определите четкие метрики для измерения результата</p>
+                </div>
               </div>
 
               {hypothesis.testingMethod && (
@@ -100,6 +112,19 @@ export default async function HypothesisDetails({ params }: { params: Promise<{ 
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
+              {/* Теория методологии HADI */}
+              <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
+                <CardHeader>
+                  <CardTitle className="text-indigo-900">📚 Методология HADI</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-indigo-800 space-y-3">
+                  <p><strong>H - Hypothesis (Гипотеза):</strong> Формулируйте четкую проверяемую гипотезу в формате "Если X, то Y, потому что Z"</p>
+                  <p><strong>A - Action (Действие):</strong> Планируйте конкретные шаги для проверки гипотезы через эксперимент</p>
+                  <p><strong>D - Data (Данные):</strong> Собирайте количественные и качественные данные в ходе эксперимента</p>
+                  <p><strong>I - Insight (Инсайт):</strong> Анализируйте результаты и делайте выводы для следующих итераций</p>
+                </CardContent>
+              </Card>
+
               <div className="grid md:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
@@ -107,20 +132,89 @@ export default async function HypothesisDetails({ params }: { params: Promise<{ 
                   </CardHeader>
                   <CardContent>
                     <p className="text-gray-700">{hypothesis.description || "Описание не указано"}</p>
+                    {hypothesis.targetAudience && (
+                      <div className="mt-4 p-3 bg-blue-50 rounded">
+                        <p className="text-sm font-medium text-blue-900">Целевая аудитория:</p>
+                        <p className="text-sm text-blue-800">{hypothesis.targetAudience}</p>
+                      </div>
+                    )}
+                    {hypothesis.userValue && (
+                      <div className="mt-2 p-3 bg-green-50 rounded">
+                        <p className="text-sm font-medium text-green-900">Ценность для пользователя:</p>
+                        <p className="text-sm text-green-800">{hypothesis.userValue}</p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Информация о создании</CardTitle>
+                    <CardTitle>Бизнес-контекст</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-2 text-sm">
-                    <div><span className="font-medium">Автор:</span> {hypothesis.creator.name ?? hypothesis.creator.email}</div>
-                    <div><span className="font-medium">Создано:</span> {new Date(hypothesis.createdAt).toLocaleDateString()}</div>
-                    <div><span className="font-medium">Обновлено:</span> {new Date(hypothesis.updatedAt).toLocaleDateString()}</div>
+                  <CardContent className="space-y-3 text-sm">
+                    {hypothesis.businessImpact && (
+                      <div>
+                        <span className="font-medium text-gray-900">Влияние на метрики:</span>
+                        <p className="text-gray-700 mt-1">{hypothesis.businessImpact}</p>
+                      </div>
+                    )}
+                    {hypothesis.financialImpact && (
+                      <div>
+                        <span className="font-medium text-gray-900">Финансовое обоснование:</span>
+                        <p className="text-gray-700 mt-1">{hypothesis.financialImpact}</p>
+                      </div>
+                    )}
+                    {hypothesis.strategicAlignment && (
+                      <div>
+                        <span className="font-medium text-gray-900">Связь с целями компании:</span>
+                        <p className="text-gray-700 mt-1">{hypothesis.strategicAlignment}</p>
+                      </div>
+                    )}
+                    <div className="mt-4 pt-3 border-t">
+                      <div><span className="font-medium">Автор:</span> {hypothesis.creator.name ?? hypothesis.creator.email}</div>
+                      <div><span className="font-medium">Создано:</span> {new Date(hypothesis.createdAt).toLocaleDateString()}</div>
+                      <div><span className="font-medium">Обновлено:</span> {new Date(hypothesis.updatedAt).toLocaleDateString()}</div>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Рекомендации по следующим шагам */}
+              <Card className="bg-yellow-50 border-yellow-200">
+                <CardHeader>
+                  <CardTitle className="text-yellow-900">🎯 Следующие шаги</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-yellow-800">
+                  {hypothesis.status === 'DRAFT' && (
+                    <div className="space-y-2">
+                      <p>• Завершите формулировку гипотезы и добавьте бизнес-контекст</p>
+                      <p>• Проведите RICE-оценку для определения приоритета</p>
+                      <p>• Переходите к этапу Desk Research для изучения существующих данных</p>
+                    </div>
+                  )}
+                  {hypothesis.status === 'DESK_RESEARCH' && (
+                    <div className="space-y-2">
+                      <p>• Соберите и проанализируйте существующие данные по теме</p>
+                      <p>• Изучите опыт конкурентов и индустрии</p>
+                      <p>• Уточните критерии успеха на основе полученной информации</p>
+                    </div>
+                  )}
+                  {hypothesis.status === 'READY_FOR_TESTING' && (
+                    <div className="space-y-2">
+                      <p>• Создайте детальный план эксперимента</p>
+                      <p>• Определите необходимые ресурсы и временные рамки</p>
+                      <p>• Запустите эксперимент и начните сбор данных</p>
+                    </div>
+                  )}
+                  {hypothesis.status === 'IN_EXPERIMENT' && (
+                    <div className="space-y-2">
+                      <p>• Отслеживайте ключевые метрики эксперимента</p>
+                      <p>• Собирайте качественную обратную связь от пользователей</p>
+                      <p>• Готовьтесь к анализу результатов по завершении</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
             </TabsContent>
 

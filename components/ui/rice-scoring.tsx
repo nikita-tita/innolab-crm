@@ -167,6 +167,29 @@ export function RiceScoring({ reach, impact, confidence, effort, onScoreChange }
           </div>
         </div>
 
+        {/* RICE Theory */}
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-md p-4 mb-4">
+          <h4 className="text-sm font-medium text-purple-900 mb-3">📊 Методология RICE Scoring</h4>
+          <div className="grid md:grid-cols-2 gap-4 text-xs text-purple-800">
+            <div>
+              <h5 className="font-medium mb-2">Как работает RICE:</h5>
+              <ul className="space-y-1">
+                <li>• <strong>Reach</strong> - количество людей, затронутых изменением</li>
+                <li>• <strong>Impact</strong> - сила воздействия на каждого пользователя</li>
+                <li>• <strong>Confidence</strong> - уверенность в оценках</li>
+                <li>• <strong>Effort</strong> - ресурсы для реализации</li>
+              </ul>
+            </div>
+            <div>
+              <h5 className="font-medium mb-2">Формула расчета:</h5>
+              <p className="bg-white p-2 rounded border font-mono text-center">
+                Score = (Reach × Impact × Confidence) ÷ Effort
+              </p>
+              <p className="mt-2 text-xs">Чем выше score, тем выше приоритет</p>
+            </div>
+          </div>
+        </div>
+
         {/* Explanation */}
         <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
           <h4 className="text-sm font-medium text-blue-900 mb-2">💡 Интерпретация RICE Score:</h4>
