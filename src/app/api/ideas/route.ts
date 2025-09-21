@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions)
 
     const body = await request.json()
-    const { title, description, category, priority = "MEDIUM" } = body
+    const { title, description, category, priority = "MEDIUM", context, reach, impact, confidence, effort } = body
 
     if (!title || !description) {
       return NextResponse.json(
@@ -119,13 +119,25 @@ export async function POST(request: NextRequest) {
 
     userId = user.id
 
+    // Calculate RICE score if all values are provided
+    let riceScore = null
+    if (reach && impact && confidence && effort && reach > 0 && impact > 0 && confidence > 0 && effort > 0) {
+      riceScore = (reach * impact * confidence) / effort
+    }
+
     const idea = await prisma.idea.create({
       data: {
         title: title.trim(),
         description: description.trim(),
         category: category?.trim() || null,
         priority,
-        status: "NEW",
+        status: riceScore ? "SCORED" : "NEW",
+        context: context?.trim() || null,
+        reach: reach || null,
+        impact: impact || null,
+        confidence: confidence || null,
+        effort: effort || null,
+        riceScore,
         createdBy: userId
       },
       include: {

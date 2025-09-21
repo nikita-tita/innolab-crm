@@ -12,7 +12,12 @@ export default function NewIdea() {
     title: "",
     description: "",
     category: "",
-    priority: "MEDIUM"
+    priority: "MEDIUM",
+    context: "",
+    reach: 0,
+    impact: 1,
+    confidence: 50,
+    effort: 1
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -50,10 +55,20 @@ export default function NewIdea() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
+    const processedValue = ['reach', 'impact', 'confidence', 'effort'].includes(name) ?
+      parseInt(value) || 0 : value
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: processedValue
     }))
+  }
+
+  const calculateRiceScore = () => {
+    const { reach, impact, confidence, effort } = formData
+    if (reach > 0 && impact > 0 && confidence > 0 && effort > 0) {
+      return Math.round((reach * impact * confidence) / effort)
+    }
+    return 0
   }
 
   if (status === "loading") {
@@ -171,6 +186,21 @@ export default function NewIdea() {
                 </p>
               </div>
 
+              <div>
+                <label htmlFor="context" className="block text-sm font-medium text-gray-700 mb-2">
+                  Контекст возникновения идеи
+                </label>
+                <textarea
+                  id="context"
+                  name="context"
+                  rows={3}
+                  value={formData.context}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Какие обстоятельства привели к появлению этой идеи? Какие данные или наблюдения послужили основанием?"
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
@@ -203,6 +233,113 @@ export default function NewIdea() {
                     <option value="HIGH">Высокий</option>
                     <option value="CRITICAL">Критический</option>
                   </select>
+                </div>
+              </div>
+
+              {/* RICE Scoring Section */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">RICE-приоритизация</h3>
+                <p className="text-sm text-gray-600 mb-6">
+                  Оцените идею по методологии RICE для определения приоритета
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div>
+                    <label htmlFor="reach" className="block text-sm font-medium text-gray-700 mb-2">
+                      Охват (Reach)
+                    </label>
+                    <input
+                      type="number"
+                      id="reach"
+                      name="reach"
+                      min="0"
+                      value={formData.reach}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="1000"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">Количество людей/событий в месяц</p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="impact" className="block text-sm font-medium text-gray-700 mb-2">
+                      Влияние (Impact)
+                    </label>
+                    <select
+                      id="impact"
+                      name="impact"
+                      value={formData.impact}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value={1}>1 - Минимальное</option>
+                      <option value={2}>2 - Низкое</option>
+                      <option value={3}>3 - Среднее</option>
+                      <option value={4}>4 - Высокое</option>
+                      <option value={5}>5 - Максимальное</option>
+                    </select>
+                    <p className="mt-1 text-xs text-gray-500">Сила воздействия на пользователя</p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="confidence" className="block text-sm font-medium text-gray-700 mb-2">
+                      Уверенность (Confidence)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="range"
+                        id="confidence"
+                        name="confidence"
+                        min="10"
+                        max="100"
+                        step="10"
+                        value={formData.confidence}
+                        onChange={handleChange}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      />
+                      <div className="text-center mt-1">
+                        <span className="text-sm font-medium text-gray-700">{formData.confidence}%</span>
+                      </div>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">Уверенность в оценках</p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="effort" className="block text-sm font-medium text-gray-700 mb-2">
+                      Затраты (Effort)
+                    </label>
+                    <input
+                      type="number"
+                      id="effort"
+                      name="effort"
+                      min="1"
+                      value={formData.effort}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="5"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">Человеко-дни для реализации</p>
+                  </div>
+                </div>
+
+                {/* RICE Score Display */}
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-medium text-blue-900">RICE Score</h4>
+                      <p className="text-xs text-blue-700">({formData.reach} × {formData.impact} × {formData.confidence}%) ÷ {formData.effort}</p>
+                    </div>
+                    <div className="text-2xl font-bold text-blue-900">
+                      {calculateRiceScore()}
+                    </div>
+                  </div>
+                  {calculateRiceScore() > 0 && (
+                    <div className="mt-2 text-xs text-blue-700">
+                      {calculateRiceScore() >= 100 && "🟢 Высокий приоритет"}
+                      {calculateRiceScore() >= 50 && calculateRiceScore() < 100 && "🟡 Средний приоритет"}
+                      {calculateRiceScore() < 50 && "🔴 Низкий приоритет"}
+                    </div>
+                  )}
                 </div>
               </div>
 

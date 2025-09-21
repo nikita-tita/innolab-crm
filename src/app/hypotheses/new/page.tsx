@@ -9,7 +9,7 @@ import { RiceScoring } from "@/components/ui/rice-scoring"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Lightbulb, Calculator, FileText } from "lucide-react"
+import { Lightbulb, Calculator, FileText, Search } from "lucide-react"
 
 interface Idea {
   id: string
@@ -35,7 +35,14 @@ function NewHypothesisInner() {
     impact: 1,
     confidence: 50,
     effort: 1,
-    riceScore: 0
+    riceScore: 0,
+    targetAudience: "",
+    userValue: "",
+    businessImpact: "",
+    financialImpact: "",
+    strategicAlignment: "",
+    deskResearchNotes: "",
+    deskResearchSources: ""
   })
   const [activeTab, setActiveTab] = useState("basic")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -215,7 +222,7 @@ function NewHypothesisInner() {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="templates">
                 <Lightbulb className="h-4 w-4 mr-2" />
                 Шаблоны
@@ -227,6 +234,10 @@ function NewHypothesisInner() {
               <TabsTrigger value="rice">
                 <Calculator className="h-4 w-4 mr-2" />
                 RICE Scoring
+              </TabsTrigger>
+              <TabsTrigger value="research">
+                <FileText className="h-4 w-4 mr-2" />
+                Desk Research
               </TabsTrigger>
             </TabsList>
 
@@ -382,6 +393,87 @@ function NewHypothesisInner() {
                 />
               </div>
 
+              {/* Business Context Section */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Бизнес-контекст гипотезы</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="targetAudience" className="block text-sm font-medium text-gray-700 mb-2">
+                      Целевая аудитория
+                    </label>
+                    <textarea
+                      id="targetAudience"
+                      name="targetAudience"
+                      rows={2}
+                      value={formData.targetAudience}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Какой сегмент пользователей затронет изменение?"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="userValue" className="block text-sm font-medium text-gray-700 mb-2">
+                      Ценность для пользователя
+                    </label>
+                    <textarea
+                      id="userValue"
+                      name="userValue"
+                      rows={2}
+                      value={formData.userValue}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Какую пользу получит пользователь?"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="businessImpact" className="block text-sm font-medium text-gray-700 mb-2">
+                      Влияние на метрики
+                    </label>
+                    <textarea
+                      id="businessImpact"
+                      name="businessImpact"
+                      rows={2}
+                      value={formData.businessImpact}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Как повлияет на ключевые метрики бизнеса?"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="financialImpact" className="block text-sm font-medium text-gray-700 mb-2">
+                      Финансовое обоснование
+                    </label>
+                    <textarea
+                      id="financialImpact"
+                      name="financialImpact"
+                      rows={2}
+                      value={formData.financialImpact}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Ожидаемый экономический эффект"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <label htmlFor="strategicAlignment" className="block text-sm font-medium text-gray-700 mb-2">
+                    Связь с целями компании
+                  </label>
+                  <textarea
+                    id="strategicAlignment"
+                    name="strategicAlignment"
+                    rows={2}
+                    value={formData.strategicAlignment}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Как гипотеза поддерживает стратегические цели?"
+                  />
+                </div>
+              </div>
+
               {/* Help Section */}
               <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
                 <h3 className="text-sm font-medium text-blue-900 mb-2">🔬 Советы по формулированию гипотезы:</h3>
@@ -420,6 +512,69 @@ function NewHypothesisInner() {
             effort={formData.effort}
             onScoreChange={handleRiceScoreChange}
           />
+        </TabsContent>
+
+        <TabsContent value="research">
+          <Card>
+            <CardHeader>
+              <CardTitle>Кабинетное исследование (Desk Research)</CardTitle>
+              <p className="text-sm text-gray-600">
+                Соберите существующие данные и исследования для обоснования гипотезы
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <label htmlFor="deskResearchNotes" className="block text-sm font-medium text-gray-700 mb-2">
+                  Результаты исследования
+                </label>
+                <textarea
+                  id="deskResearchNotes"
+                  name="deskResearchNotes"
+                  rows={8}
+                  value={formData.deskResearchNotes}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Ключевые данные, статистика, инсайты из существующих исследований:
+
+• Данные аналитики
+• Отзывы пользователей
+• Конкурентный анализ
+• Отраслевые исследования
+• Внутренние данные"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="deskResearchSources" className="block text-sm font-medium text-gray-700 mb-2">
+                  Источники данных
+                </label>
+                <textarea
+                  id="deskResearchSources"
+                  name="deskResearchSources"
+                  rows={4}
+                  value={formData.deskResearchSources}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Список источников информации:
+
+• Google Analytics
+• Отчеты исследований
+• Интервью с пользователями
+• Данные поддержки"
+                />
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                <h3 className="text-sm font-medium text-blue-900 mb-2">📊 Типы данных для Desk Research:</h3>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• <strong>Количественные:</strong> метрики продукта, аналитика, статистика рынка</li>
+                  <li>• <strong>Качественные:</strong> отзывы пользователей, интервью, обзоры</li>
+                  <li>• <strong>Конкурентные:</strong> анализ решений конкурентов, best practices</li>
+                  <li>• <strong>Отраслевые:</strong> тренды рынка, исследования аналитиков</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

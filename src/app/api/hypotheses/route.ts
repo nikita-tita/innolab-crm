@@ -78,11 +78,23 @@ export async function POST(request: NextRequest) {
     const {
       title,
       statement,
+      description,
       ideaId,
       priority = "MEDIUM",
       confidenceLevel = 70,
       testingMethod,
-      successCriteria: successCriteriaText
+      successCriteria: successCriteriaText,
+      reach,
+      impact,
+      confidence,
+      effort,
+      targetAudience,
+      userValue,
+      businessImpact,
+      financialImpact,
+      strategicAlignment,
+      deskResearchNotes,
+      deskResearchSources
     } = body
 
     if (!title || !statement || !ideaId) {
@@ -145,16 +157,36 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Calculate RICE score if all values are provided
+    let riceScore = null
+    if (reach && impact && confidence && effort && reach > 0 && impact > 0 && confidence > 0 && effort > 0) {
+      riceScore = (reach * impact * confidence) / effort
+    }
+
     const hypothesis = await prisma.hypothesis.create({
       data: {
         title: title.trim(),
         statement: statement.trim(),
+        description: description?.trim() || null,
         ideaId,
         priority,
         confidenceLevel,
         testingMethod: testingMethod?.trim() || null,
         successCriteriaText: successCriteriaText?.trim() || null,
-        status: "DRAFT",
+        status: riceScore ? "SCORED" : "DRAFT",
+        reach: reach || null,
+        impact: impact || null,
+        confidence: confidence || null,
+        effort: effort || null,
+        riceScore,
+        targetAudience: targetAudience?.trim() || null,
+        userValue: userValue?.trim() || null,
+        businessImpact: businessImpact?.trim() || null,
+        financialImpact: financialImpact?.trim() || null,
+        strategicAlignment: strategicAlignment?.trim() || null,
+        deskResearchNotes: deskResearchNotes?.trim() || null,
+        deskResearchSources: deskResearchSources?.trim() || null,
+        deskResearchDate: deskResearchNotes ? new Date() : null,
         createdBy: userId
       },
       include: {

@@ -13,6 +13,12 @@ interface Idea {
   category: string
   status: string
   priority: string
+  reach?: number
+  impact?: number
+  confidence?: number
+  effort?: number
+  riceScore?: number
+  context?: string
   createdAt: string
   creator: {
     name: string
@@ -57,9 +63,10 @@ export default function Ideas() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "NEW": return "bg-blue-100 text-blue-800"
-      case "IN_REVIEW": return "bg-yellow-100 text-yellow-800"
-      case "APPROVED": return "bg-green-100 text-green-800"
-      case "IN_DEVELOPMENT": return "bg-purple-100 text-purple-800"
+      case "SCORED": return "bg-purple-100 text-purple-800"
+      case "SELECTED": return "bg-green-100 text-green-800"
+      case "IN_HYPOTHESIS": return "bg-yellow-100 text-yellow-800"
+      case "COMPLETED": return "bg-emerald-100 text-emerald-800"
       case "ARCHIVED": return "bg-gray-100 text-gray-800"
       default: return "bg-gray-100 text-gray-800"
     }
@@ -78,9 +85,10 @@ export default function Ideas() {
   const getStatusText = (status: string) => {
     switch (status) {
       case "NEW": return "Новая"
-      case "IN_REVIEW": return "На рассмотрении"
-      case "APPROVED": return "Одобрена"
-      case "IN_DEVELOPMENT": return "В разработке"
+      case "SCORED": return "RICE-оценка"
+      case "SELECTED": return "Отобрана"
+      case "IN_HYPOTHESIS": return "Проработка"
+      case "COMPLETED": return "Готова"
       case "ARCHIVED": return "Архивирована"
       default: return status
     }
@@ -182,7 +190,17 @@ export default function Ideas() {
 
           {/* Ideas Grid */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {ideas.map((idea) => (
+            {ideas
+              .sort((a, b) => {
+                // Sort by RICE score first (descending), then by creation date
+                if (a.riceScore && b.riceScore) {
+                  return b.riceScore - a.riceScore
+                }
+                if (a.riceScore && !b.riceScore) return -1
+                if (!a.riceScore && b.riceScore) return 1
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+              })
+              .map((idea) => (
               <div key={idea.id} className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 truncate pr-2">
@@ -199,11 +217,28 @@ export default function Ideas() {
                   {idea.description}
                 </p>
 
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                  <span className="bg-gray-100 px-2 py-1 rounded">{idea.category}</span>
-                  <span className={`px-2 py-1 rounded ${getPriorityColor(idea.priority)}`}>
-                    {getPriorityText(idea.priority)}
-                  </span>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <span className="bg-gray-100 px-2 py-1 rounded">{idea.category || 'Без категории'}</span>
+                    <span className={`px-2 py-1 rounded ${getPriorityColor(idea.priority)}`}>
+                      {getPriorityText(idea.priority)}
+                    </span>
+                  </div>
+
+                  {/* RICE Score Display */}
+                  {idea.riceScore && (
+                    <div className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-2 rounded-md">
+                      <div className="text-xs text-gray-600">
+                        <span className="font-medium">RICE Score:</span>
+                        <div className="text-xs text-gray-500">
+                          {idea.reach} × {idea.impact} × {idea.confidence}% ÷ {idea.effort}
+                        </div>
+                      </div>
+                      <div className="text-lg font-bold text-blue-600">
+                        {Math.round(idea.riceScore)}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="border-t pt-4">
