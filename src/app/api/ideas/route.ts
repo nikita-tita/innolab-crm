@@ -82,8 +82,16 @@ export async function POST(request: NextRequest) {
     // Create or get demo user
     let userId = session?.user?.id || 'demo-user-id'
 
-    // Ensure demo user exists
-    let user = await prisma.user.findUnique({ where: { id: userId } })
+    // First try to find existing demo user by email
+    let user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { id: userId },
+          { email: 'demo@innolab.com' }
+        ]
+      }
+    })
+
     if (!user) {
       try {
         user = await prisma.user.create({
@@ -95,17 +103,21 @@ export async function POST(request: NextRequest) {
           }
         })
       } catch (error: any) {
-        // User might already exist with different ID but same email
+        // If user already exists, find them
         if (error.code === 'P2002') {
-          user = await prisma.user.findUnique({ where: { email: 'demo@innolab.com' } })
-          if (user) {
-            userId = user.id
+          user = await prisma.user.findFirst({
+            where: { email: 'demo@innolab.com' }
+          })
+          if (!user) {
+            throw new Error('Could not create or find demo user')
           }
         } else {
           throw error
         }
       }
     }
+
+    userId = user.id
 
     const idea = await prisma.idea.create({
       data: {

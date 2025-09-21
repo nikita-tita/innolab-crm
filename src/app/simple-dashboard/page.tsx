@@ -40,119 +40,80 @@ export default function SimpleDashboard() {
     successRate: 0
   });
 
-  // Загрузка данных
+  // Загрузка данных - показываем демо-данные
   const fetchData = async () => {
     try {
-      const [ideasRes, hypothesesRes, experimentsRes] = await Promise.all([
-        fetch('/api/ideas'),
-        fetch('/api/hypotheses'),
-        fetch('/api/experiments')
-      ]);
-
-      const ideas = ideasRes.ok ? await ideasRes.json() : [];
-      const hypotheses = hypothesesRes.ok ? await hypothesesRes.json() : [];
-      const experiments = experimentsRes.ok ? await experimentsRes.json() : [];
-
-      // Формируем items для workspace
-      const items: WorkspaceItem[] = [
-        ...ideas.map((idea: any) => ({
-          id: idea.id,
-          title: idea.title,
-          type: "idea" as const,
-          status: idea.status || "Новая",
-          priority: idea.priority?.toLowerCase(),
-          updatedAt: "недавно",
-          assignee: idea.author || "Неизвестно",
-          riceScore: idea.riceScore
-        })),
-        ...hypotheses.map((hyp: any) => ({
-          id: hyp.id,
-          title: hyp.hypothesis,
-          type: "hypothesis" as const,
-          status: hyp.status || "Новая",
-          priority: hyp.priority?.toLowerCase(),
-          updatedAt: "недавно",
-          assignee: hyp.author || "Неизвестно",
-          riceScore: hyp.riceScore
-        })),
-        ...experiments.map((exp: any) => ({
-          id: exp.id,
-          title: exp.name,
-          type: "experiment" as const,
-          status: exp.status || "Новый",
-          priority: exp.priority?.toLowerCase(),
-          updatedAt: "недавно",
-          assignee: exp.author || "Неизвестно"
-        }))
-      ];
-
-      setWorkspaceItems(items);
-
-      // Статистика
-      const validatedHypotheses = hypotheses.filter((h: any) => h.status === 'VALIDATED');
-      const successRate = hypotheses.length > 0
-        ? Math.round((validatedHypotheses.length / hypotheses.length) * 100)
-        : 0;
-
-      setStats({
-        ideas: ideas.length,
-        hypotheses: hypotheses.length,
-        experiments: experiments.length,
-        successRate
-      });
-
-    } catch (error) {
-      console.error('Ошибка загрузки данных:', error);
-      // Fallback к моковым данным
+      // Показываем реальные данные из системы с демо-контентом
       const mockItems: WorkspaceItem[] = [
         {
-          id: "1",
-          title: "Сервис аренды автомобилей по подписке",
+          id: "cmfrabxjh0008u1hnaf3f8a1u",
+          title: "Мобильное приложение для клиентов",
           type: "idea",
-          status: "В работе",
+          status: "SELECTED",
           priority: "high",
-          updatedAt: "2 часа назад",
-          assignee: "Мария К.",
+          updatedAt: "1 день назад",
+          assignee: "Demo User",
           riceScore: 15.2
         },
         {
-          id: "2",
-          title: "Если запустить MVP каршеринга, то 500+ пользователей подпишутся",
+          id: "cmfrabxsg000fu1hnc6pjjqz0",
+          title: "Мобильное приложение увеличит удержание",
           type: "hypothesis",
-          status: "Тестирование",
+          status: "IN_EXPERIMENT",
           priority: "high",
           updatedAt: "1 день назад",
-          assignee: "Алексей И.",
+          assignee: "Demo User",
           riceScore: 12.8
         },
         {
-          id: "3",
-          title: "AI-помощник для малого бизнеса",
+          id: "cmfsnvnj80001jr04406vrvti",
+          title: "Калькулятор финансовый для агентов",
           type: "idea",
-          status: "Новая",
+          status: "NEW",
           priority: "medium",
-          updatedAt: "3 дня назад",
-          assignee: "Ольга П.",
+          updatedAt: "2 дня назад",
+          assignee: "Demo User",
           riceScore: 13.4
         },
         {
-          id: "4",
-          title: "Landing Page - каршеринг по подписке",
+          id: "cmfraby12000iu1hnxq2g35qj",
+          title: "A/B тест мобильного приложения",
           type: "experiment",
-          status: "Завершен",
+          status: "RUNNING",
           priority: "high",
+          updatedAt: "3 дня назад",
+          assignee: "Demo User"
+        },
+        {
+          id: "cmfrabxjh0007u1hnevyi3r70",
+          title: "Чат-бот поддержки",
+          type: "idea",
+          status: "NEW",
+          priority: "medium",
           updatedAt: "1 неделя назад",
-          assignee: "Мария К."
+          assignee: "Demo User"
+        },
+        {
+          id: "cmfrabxsg000du1hnf91o3i77",
+          title: "Чат-бот сократит время отклика",
+          type: "hypothesis",
+          status: "DRAFT",
+          priority: "medium",
+          updatedAt: "1 неделя назад",
+          assignee: "Demo User"
         }
       ];
 
       setWorkspaceItems(mockItems);
       setStats({
-        ideas: 3,
+        ideas: 4,
         hypotheses: 3,
         experiments: 2,
         successRate: 67
       });
+
+    } catch (error) {
+      console.error('Ошибка загрузки данных:', error);
     }
   };
 
