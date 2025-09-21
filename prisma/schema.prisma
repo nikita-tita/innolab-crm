@@ -110,6 +110,8 @@ model Hypothesis {
   deskResearchNotes   String?           // Результаты кабинетного исследования
   deskResearchSources String?           // Источники данных
   deskResearchDate    DateTime?         // Дата проведения desk research
+  risks               String?           // Выявленные риски
+  opportunities       String?           // Возможности и преимущества
   ideaId              String
   createdBy           String
   createdAt           DateTime          @default(now())

@@ -1,6 +1,8 @@
+"use client"
+
 import { notFound } from "next/navigation"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { prisma } from "@/lib/prisma"
 import Comments from "@/components/ui/Comments"
 import HADIStepper from "@/components/ui/HADIStepper"
 import StatusControls from "./status-controls"
@@ -12,18 +14,41 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
-export default async function HypothesisDetails({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const hypothesis = await prisma.hypothesis.findUnique({
-    where: { id },
-    include: {
-      creator: { select: { id: true, name: true, email: true, role: true } },
-      idea: { select: { id: true, title: true } },
-      experiments: { select: { id: true, title: true, status: true } },
-      _count: { select: { experiments: true, comments: true } },
-    },
-  })
+export default function HypothesisDetails({ params }: { params: Promise<{ id: string }> }) {
+  const [hypothesis, setHypothesis] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [id, setId] = useState<string>("")
 
+  useEffect(() => {
+    async function getParams() {
+      const resolvedParams = await params
+      setId(resolvedParams.id)
+    }
+    getParams()
+  }, [params])
+
+  useEffect(() => {
+    if (!id) return
+
+    async function fetchHypothesis() {
+      try {
+        const response = await fetch(`/api/hypotheses/${id}`)
+        if (!response.ok) {
+          return notFound()
+        }
+        const data = await response.json()
+        setHypothesis(data)
+      } catch (error) {
+        console.error("Error fetching hypothesis:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchHypothesis()
+  }, [id])
+
+  if (loading) return <div className="p-8">Loading...</div>
   if (!hypothesis) return notFound()
 
   return (
@@ -230,13 +255,33 @@ export default async function HypothesisDetails({ params }: { params: Promise<{ 
                   opportunities: hypothesis.opportunities || [],
                   researchDate: hypothesis.deskResearchDate
                 }}
-                onSave={(data) => {
-                  console.log("Saving desk research:", data);
-                  // Здесь будет API вызов для сохранения данных Desk Research
+                onSave={async (data) => {
+                  try {
+                    const response = await fetch(`/api/hypotheses/${hypothesis.id}/desk-research`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(data)
+                    });
+                    if (response.ok) {
+                      window.location.reload();
+                    }
+                  } catch (error) {
+                    console.error("Error saving desk research:", error);
+                  }
                 }}
-                onStatusChange={(newStatus) => {
-                  console.log("Status change:", newStatus);
-                  // Здесь будет API вызов для обновления статуса
+                onStatusChange={async (newStatus) => {
+                  try {
+                    const response = await fetch(`/api/hypotheses/${hypothesis.id}/status`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ status: newStatus })
+                    });
+                    if (response.ok) {
+                      window.location.reload();
+                    }
+                  } catch (error) {
+                    console.error("Error updating status:", error);
+                  }
                 }}
                 disabled={hypothesis.status !== "DESK_RESEARCH"}
               />
@@ -248,9 +293,19 @@ export default async function HypothesisDetails({ params }: { params: Promise<{ 
                 impact={hypothesis.impact || 1}
                 confidence={hypothesis.confidence || 50}
                 effort={hypothesis.effort || 1}
-                onScoreChange={(score, values) => {
-                  console.log("RICE score updated:", score, values);
-                  // Здесь будет API вызов для сохранения RICE оценки
+                onScoreChange={async (score, values) => {
+                  try {
+                    const response = await fetch(`/api/hypotheses/${hypothesis.id}/rice-score`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ ...values, score })
+                    });
+                    if (response.ok) {
+                      window.location.reload();
+                    }
+                  } catch (error) {
+                    console.error("Error updating RICE score:", error);
+                  }
                 }}
                 disabled={hypothesis.status === "COMPLETED"}
               />

@@ -258,24 +258,91 @@ export default function WorkflowPage() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-wrap gap-2">
-                        {stage.actions.map((action, actionIndex) => (
-                          <Link key={actionIndex} href={stage.links[actionIndex]}>
-                            <Button variant="outline" size="sm">
-                              {action}
-                            </Button>
-                          </Link>
-                        ))}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="secondary">{stage.status}</Badge>
-                        {stage.id <= 3 && (
-                          <Badge variant="outline">
-                            <Users className="h-3 w-3 mr-1" />
-                            Команда
-                          </Badge>
+                    <div className="space-y-4">
+                      {/* Stage-specific tips */}
+                      <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                        {stage.id === 1 && (
+                          <div>
+                            <p className="font-medium text-gray-900 mb-2">💡 Советы по сбору идей:</p>
+                            <ul className="text-gray-700 space-y-1">
+                              <li>• Создавайте безопасную среду для высказывания любых предложений</li>
+                              <li>• Фиксируйте идеи сразу, не откладывая на потом</li>
+                              <li>• Ищите вдохновение в проблемах клиентов</li>
+                            </ul>
+                          </div>
                         )}
+                        {stage.id === 2 && (
+                          <div>
+                            <p className="font-medium text-gray-900 mb-2">🎯 RICE приоритизация:</p>
+                            <ul className="text-gray-700 space-y-1">
+                              <li>• <strong>Reach:</strong> Сколько пользователей затронет изменение</li>
+                              <li>• <strong>Impact:</strong> Насколько сильно повлияет на каждого (1-5)</li>
+                              <li>• <strong>Confidence:</strong> Уверенность в оценках (в %)</li>
+                              <li>• <strong>Effort:</strong> Сколько времени потребует реализация</li>
+                            </ul>
+                          </div>
+                        )}
+                        {stage.id === 4 && (
+                          <div>
+                            <p className="font-medium text-gray-900 mb-2">🔬 Формулировка гипотез:</p>
+                            <ul className="text-gray-700 space-y-1">
+                              <li>• Используйте формат: "Если [действие], то [результат], потому что [обоснование]"</li>
+                              <li>• Делайте гипотезы конкретными и измеримыми</li>
+                              <li>• Определяйте четкие критерии успеха</li>
+                            </ul>
+                          </div>
+                        )}
+                        {stage.id === 6 && (
+                          <div>
+                            <p className="font-medium text-gray-900 mb-2">📊 Desk Research:</p>
+                            <ul className="text-gray-700 space-y-1">
+                              <li>• Изучите внутреннюю аналитику и данные</li>
+                              <li>• Найдите похожие кейсы в отрасли</li>
+                              <li>• Соберите отзывы и мнения пользователей</li>
+                            </ul>
+                          </div>
+                        )}
+                        {stage.id === 8 && (
+                          <div>
+                            <p className="font-medium text-gray-900 mb-2">🚀 Проведение эксперимента:</p>
+                            <ul className="text-gray-700 space-y-1">
+                              <li>• Тестируйте минимально жизнеспособное решение</li>
+                              <li>• Отслеживайте ключевые метрики ежедневно</li>
+                              <li>• Собирайте как количественные, так и качественные данные</li>
+                            </ul>
+                          </div>
+                        )}
+                        {stage.id === 9 && (
+                          <div>
+                            <p className="font-medium text-gray-900 mb-2">📈 Анализ результатов:</p>
+                            <ul className="text-gray-700 space-y-1">
+                              <li>• Сравните результаты с изначальными критериями успеха</li>
+                              <li>• Учитывайте статистическую значимость</li>
+                              <li>• Зафиксируйте полученные инсайты для будущих экспериментов</li>
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap gap-2">
+                          {stage.actions.map((action, actionIndex) => (
+                            <Link key={actionIndex} href={stage.links[actionIndex]}>
+                              <Button variant="outline" size="sm">
+                                {action}
+                              </Button>
+                            </Link>
+                          ))}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant="secondary">{stage.status}</Badge>
+                          {stage.id <= 3 && (
+                            <Badge variant="outline">
+                              <Users className="h-3 w-3 mr-1" />
+                              Команда
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -325,6 +392,93 @@ export default function WorkflowPage() {
                 {Math.round(((stageData.experiments * 0.7) / Math.max(stageData.ideas, 1)) * 100)}%
               </p>
               <p className="text-sm text-gray-600">идей приводят к результату</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Methodology Theory */}
+        <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-indigo-900 mb-4">📚 Теоретические основы процесса</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg p-4">
+              <h3 className="font-medium text-indigo-900 mb-3">Lean Startup методология</h3>
+              <ul className="text-sm text-indigo-800 space-y-2">
+                <li>• <strong>Build-Measure-Learn</strong> - итеративный цикл создания продукта</li>
+                <li>• <strong>MVP</strong> - минимально жизнеспособный продукт для быстрой проверки</li>
+                <li>• <strong>Validated Learning</strong> - обучение на основе реальных данных</li>
+                <li>• <strong>Pivot or Persevere</strong> - принятие решений на основе метрик</li>
+              </ul>
+            </div>
+            <div className="bg-white rounded-lg p-4">
+              <h3 className="font-medium text-indigo-900 mb-3">HADI цикл</h3>
+              <ul className="text-sm text-indigo-800 space-y-2">
+                <li>• <strong>Hypothesis</strong> - четкая формулировка предположения</li>
+                <li>• <strong>Action</strong> - конкретные шаги для проверки</li>
+                <li>• <strong>Data</strong> - сбор и анализ количественных данных</li>
+                <li>• <strong>Insight</strong> - выводы и следующие шаги</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Best Practices */}
+        <div className="mt-8 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-amber-900 mb-4">⚡ Лучшие практики и советы</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-lg p-4">
+              <h3 className="font-medium text-amber-900 mb-3">Генерация идей</h3>
+              <ul className="text-sm text-amber-800 space-y-1">
+                <li>• Проводите регулярные brainstorming сессии</li>
+                <li>• Собирайте обратную связь от пользователей</li>
+                <li>• Анализируйте проблемы клиентов</li>
+                <li>• Изучайте тренды и технологии</li>
+                <li>• Документируйте все идеи, даже "сырые"</li>
+              </ul>
+            </div>
+            <div className="bg-white rounded-lg p-4">
+              <h3 className="font-medium text-amber-900 mb-3">Приоритизация</h3>
+              <ul className="text-sm text-amber-800 space-y-1">
+                <li>• Используйте RICE для объективной оценки</li>
+                <li>• Учитывайте стратегические цели компании</li>
+                <li>• Оценивайте ресурсы и время</li>
+                <li>• Рассматривайте риски и ограничения</li>
+                <li>• Регулярно пересматривайте приоритеты</li>
+              </ul>
+            </div>
+            <div className="bg-white rounded-lg p-4">
+              <h3 className="font-medium text-amber-900 mb-3">Эксперименты</h3>
+              <ul className="text-sm text-amber-800 space-y-1">
+                <li>• Начинайте с минимального MVP</li>
+                <li>• Определяйте четкие критерии успеха</li>
+                <li>• Тестируйте одну переменную за раз</li>
+                <li>• Собирайте количественные данные</li>
+                <li>• Делайте выводы на основе фактов</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Common Mistakes */}
+        <div className="mt-8 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg p-6">
+          <h2 className="text-xl font-semibold text-red-900 mb-4">⚠️ Частые ошибки и как их избежать</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg p-4">
+              <h3 className="font-medium text-red-900 mb-3">Ошибки на ранних этапах</h3>
+              <ul className="text-sm text-red-800 space-y-2">
+                <li>• <strong>Влюбленность в идею</strong> - объективно оценивайте feedback</li>
+                <li>• <strong>Пропуск исследований</strong> - всегда проводите Desk Research</li>
+                <li>• <strong>Размытые гипотезы</strong> - формулируйте четко и измеримо</li>
+                <li>• <strong>Игнорирование данных</strong> - принимайте решения на основе фактов</li>
+              </ul>
+            </div>
+            <div className="bg-white rounded-lg p-4">
+              <h3 className="font-medium text-red-900 mb-3">Ошибки при тестировании</h3>
+              <ul className="text-sm text-red-800 space-y-2">
+                <li>• <strong>Слишком сложный MVP</strong> - начинайте с простого</li>
+                <li>• <strong>Короткий период тестирования</strong> - дайте время на сбор данных</li>
+                <li>• <strong>Маленькая выборка</strong> - обеспечьте статистическую значимость</li>
+                <li>• <strong>Множественные изменения</strong> - тестируйте по одной переменной</li>
+              </ul>
             </div>
           </div>
         </div>
