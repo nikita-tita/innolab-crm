@@ -77,7 +77,7 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center space-x-3">
               <ExportButton />
-              {session?.user?.role === 'ADMIN' && (
+              {(session?.user?.role === 'ADMIN' || session?.user?.role === 'LAB_DIRECTOR') && (
                 <Link href="/admin">
                   <Button variant="outline" size="sm">
                     Админка

@@ -23,7 +23,7 @@ export default withAuth(
 
     // Ограничиваем доступ к админ-панели
     if (pathname.startsWith("/admin")) {
-      if (token.role !== "ADMIN") {
+      if (token.role !== "ADMIN" && token.role !== "LAB_DIRECTOR") {
         return NextResponse.redirect(new URL("/dashboard?error=access_denied", req.url))
       }
     }
