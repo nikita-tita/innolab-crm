@@ -1,27 +1,22 @@
 "use client"
 
-import { useSession, signOut } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import RecentActivity from "@/components/ui/RecentActivity"
 import ExportButton from "@/components/ui/ExportButton"
+import { canCreate, isViewer, getRoleDisplayName } from "@/lib/permissions"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 
 export default function Dashboard() {
   const { data: session, status } = useSession()
-  const router = useRouter()
   const [stats, setStats] = useState({
     ideas: 0,
     hypotheses: 0,
     experiments: 0,
     successRate: 0
   })
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin")
-    }
-  }, [status, router])
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -36,11 +31,8 @@ export default function Dashboard() {
         const hypotheses = hypothesesRes.ok ? await hypothesesRes.json() : []
         const experiments = experimentsRes.ok ? await experimentsRes.json() : []
 
-        // Подсчет успешности на основе подтвержденных гипотез
-        const validatedHypotheses = hypotheses.filter((h: { status: string }) => h.status === 'VALIDATED')
-        const successRate = hypotheses.length > 0
-          ? Math.round((validatedHypotheses.length / hypotheses.length) * 100)
-          : 0
+        const successfulExperiments = experiments.filter((exp: any) => exp.status === 'VALIDATED').length
+        const successRate = experiments.length > 0 ? Math.round((successfulExperiments / experiments.length) * 100) : 0
 
         setStats({
           ideas: ideas.length,
@@ -50,12 +42,11 @@ export default function Dashboard() {
         })
       } catch (error) {
         console.error('Error fetching stats:', error)
-        // Fallback to mock data if API fails
         setStats({
-          ideas: 3,
-          hypotheses: 3,
-          experiments: 2,
-          successRate: 67
+          ideas: 0,
+          hypotheses: 0,
+          experiments: 0,
+          successRate: 0
         })
       }
     }
@@ -65,43 +56,37 @@ export default function Dashboard() {
     }
   }, [status])
 
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-lg">Загрузка...</div>
-      </div>
-    )
-  }
-
   if (!session) {
     return null
   }
 
+  const userRole = session.user.role as any
+  const isReadOnlyUser = isViewer(userRole)
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg">
+      <header className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <div className="bg-white bg-opacity-20 rounded-lg p-2 mr-3">
-                <span className="text-2xl">🚀</span>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-white">InnoLab CRM</h1>
-                <p className="text-blue-100 text-sm">Система для запуска новых продуктов</p>
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center space-x-4">
+              <h1 className="text-2xl font-bold text-gray-900">InnoLab CRM</h1>
+              <div className="text-sm text-gray-600">
+                {session?.user?.name} | {getRoleDisplayName(session?.user?.role || '')}
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-blue-100">
-                Привет, <span className="text-white font-medium">{session.user?.name || session.user?.email}</span>
-              </div>
-              <button
-                onClick={() => signOut()}
-                className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 border border-white border-opacity-30"
-              >
-                Выйти
-              </button>
+            <div className="flex items-center space-x-3">
+              <ExportButton />
+              {session?.user?.role === 'ADMIN' && (
+                <Link href="/admin">
+                  <Button variant="outline" size="sm">
+                    Админка
+                  </Button>
+                </Link>
+              )}
+              <Badge variant="secondary" className="text-xs">
+                v1.0.0
+              </Badge>
             </div>
           </div>
         </div>
@@ -127,105 +112,119 @@ export default function Dashboard() {
               <span>⚗️</span>
               <span>Эксперименты</span>
             </Link>
-            <Link href="/knowledge" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>📚</span>
-              <span>База знаний</span>
-            </Link>
-            <Link href="/workflow" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>🔄</span>
-              <span>Воронка процесса</span>
+            <Link href="/analytics" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>📈</span>
+              <span>Аналитика</span>
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {isReadOnlyUser && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+            <h3 className="font-medium text-amber-900 mb-2">Режим просмотра</h3>
+            <p className="text-amber-800 text-sm">
+              У вас есть доступ только для просмотра данных. Создание и редактирование недоступны.
+              Если вам нужен расширенный доступ, обратитесь к администратору.
+            </p>
+          </div>
+        )}
+
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
-            <div className="flex items-center">
-              <div className="p-3 bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl shadow-md">
-                <span className="text-2xl filter drop-shadow-sm">💡</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-600 text-sm font-medium">Идеи</p>
+                <p className="text-3xl font-bold text-blue-900">{stats.ideas}</p>
               </div>
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Идеи</h3>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.ideas}</p>
-              </div>
+              <div className="text-3xl">💡</div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
-            <div className="flex items-center">
-              <div className="p-3 bg-gradient-to-br from-green-400 to-green-500 rounded-xl shadow-md">
-                <span className="text-2xl filter drop-shadow-sm">🔬</span>
+          <div className="bg-green-50 rounded-xl p-6 border border-green-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-600 text-sm font-medium">Гипотезы</p>
+                <p className="text-3xl font-bold text-green-900">{stats.hypotheses}</p>
               </div>
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Гипотезы</h3>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.hypotheses}</p>
-              </div>
+              <div className="text-3xl">🔬</div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-100">
-            <div className="flex items-center">
-              <div className="p-3 bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl shadow-md">
-                <span className="text-2xl filter drop-shadow-sm">⚗️</span>
+          <div className="bg-purple-50 rounded-xl p-6 border border-purple-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-600 text-sm font-medium">Эксперименты</p>
+                <p className="text-3xl font-bold text-purple-900">{stats.experiments}</p>
               </div>
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Эксперименты</h3>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.experiments}</p>
+              <div className="text-3xl">⚗️</div>
+            </div>
+          </div>
+
+          <div className="bg-orange-50 rounded-xl p-6 border border-orange-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-orange-600 text-sm font-medium">Успешность</p>
+                <p className="text-3xl font-bold text-orange-900">{stats.successRate}%</p>
               </div>
+              <div className="text-3xl">📈</div>
             </div>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-            <span className="text-2xl mr-2">⚡</span>
-            Быстрые действия
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Link
-              href="/ideas/new"
-              className="group flex items-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl hover:from-blue-100 hover:to-blue-200 transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-blue-200"
-            >
-              <div className="bg-blue-500 p-3 rounded-xl mr-4 group-hover:bg-blue-600 transition-colors duration-300">
-                <span className="text-2xl text-white">💡</span>
-              </div>
-              <div>
-                <h3 className="font-semibold text-blue-900 group-hover:text-blue-800">Добавить идею</h3>
-                <p className="text-sm text-blue-600 mt-1">Создать новую инновационную идею</p>
-              </div>
-            </Link>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {canCreate(userRole) && (
+            <>
+              <Link
+                href="/ideas/new"
+                className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-200 group"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="text-4xl group-hover:scale-110 transition-transform duration-200">💡</div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
+                      Новая идея
+                    </h3>
+                    <p className="text-gray-600 text-sm">Добавить идею для проработки</p>
+                  </div>
+                </div>
+              </Link>
 
-            <Link
-              href="/hypotheses/new"
-              className="group flex items-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl hover:from-green-100 hover:to-green-200 transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-green-200"
-            >
-              <div className="bg-green-500 p-3 rounded-xl mr-4 group-hover:bg-green-600 transition-colors duration-300">
-                <span className="text-2xl text-white">🧪</span>
-              </div>
-              <div>
-                <h3 className="font-semibold text-green-900 group-hover:text-green-800">Создать гипотезу</h3>
-                <p className="text-sm text-green-600 mt-1">Сформулировать проверяемую гипотезу</p>
-              </div>
-            </Link>
+              <Link
+                href="/hypotheses/new"
+                className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-200 group"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="text-4xl group-hover:scale-110 transition-transform duration-200">🔬</div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
+                      Новая гипотеза
+                    </h3>
+                    <p className="text-gray-600 text-sm">Сформулировать гипотезу</p>
+                  </div>
+                </div>
+              </Link>
 
-            <Link
-              href="/experiments/new"
-              className="group flex items-center p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl hover:from-orange-100 hover:to-orange-200 transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-orange-200"
-            >
-              <div className="bg-orange-500 p-3 rounded-xl mr-4 group-hover:bg-orange-600 transition-colors duration-300">
-                <span className="text-2xl text-white">🔬</span>
-              </div>
-              <div>
-                <h3 className="font-semibold text-orange-900 group-hover:text-orange-800">Запустить эксперимент</h3>
-                <p className="text-sm text-orange-600 mt-1">Начать тестирование гипотезы</p>
-              </div>
-            </Link>
-          </div>
+              <Link
+                href="/experiments/new"
+                className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-200 group"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="text-4xl group-hover:scale-110 transition-transform duration-200">⚗️</div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
+                      Новый эксперимент
+                    </h3>
+                    <p className="text-gray-600 text-sm">Запланировать эксперимент</p>
+                  </div>
+                </div>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Recent Activity */}
@@ -236,7 +235,7 @@ export default function Dashboard() {
           </h2>
           <RecentActivity />
         </div>
-      </main>
+      </div>
     </div>
   )
 }

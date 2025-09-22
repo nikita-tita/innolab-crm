@@ -14,7 +14,10 @@ model User {
   email             String       @unique
   emailVerified     DateTime?
   image             String?
-  role              UserRole     @default(PRODUCT_MANAGER)
+  role              UserRole     @default(VIEWER)
+  status            UserStatus   @default(PENDING)     // Статус пользователя
+  isActive          Boolean      @default(true)        // Активен ли пользователь
+  lastLoginAt       DateTime?                          // Последний вход
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
   accounts          Account[]
@@ -22,10 +25,13 @@ model User {
   comments          Comment[]
   experiments       Experiment[] @relation("ExperimentCreator")
   createdHypotheses Hypothesis[] @relation("HypothesisCreator")
+  ownedHypotheses   Hypothesis[] @relation("HypothesisOwner")
   createdIdeas      Idea[]       @relation("IdeaCreator")
   createdMVPs       MVP[]        @relation("MVPCreator")
   lessons           Lesson[]
   sessions          Session[]
+  iceScores         ICEScore[]
+  transitions       HypothesisTransition[] @relation("HypothesisTransitions")
 }
 
 model Account {
@@ -94,34 +100,78 @@ model Hypothesis {
   confidenceLevel     Int               @default(50)
   testingMethod       String?
   successCriteriaText String?
+
+  // Уровни гипотез
+  level               HypothesisLevel   @default(LEVEL_1)   // Уровень гипотезы
+
   // RICE scoring для гипотез
   reach               Int?              // Охват эксперимента
   impact              Int?              // Влияние при подтверждении (1-5)
   confidence          Int?              // Уверенность (%)
   effort              Int?              // Затраты на эксперимент
   riceScore           Float?            // Автовычисляемый RICE score
+
   // Дополнительные поля из методологии
   targetAudience      String?           // Целевая аудитория/сегмент
   userValue           String?           // Ценность для пользователя
   businessImpact      String?           // Влияние на метрики
   financialImpact     String?           // Финансовое обоснование
   strategicAlignment  String?           // Связь с целями компании
-  // Desk Research
+
+  // Гипотеза уровня 1 (базовая формулировка)
+  actionDescription   String?           // "Если мы сделаем..." - описание действия
+  expectedResult      String?           // "То произойдёт..." - ожидаемый результат
+  reasoning           String?           // "Потому что..." - обоснование
+
+  // Гипотеза уровня 2 (после Desk Research)
   deskResearchNotes   String?           // Результаты кабинетного исследования
   deskResearchSources String?           // Источники данных
   deskResearchDate    DateTime?         // Дата проведения desk research
   risks               String?           // Выявленные риски
   opportunities       String?           // Возможности и преимущества
+  marketSize          String?           // Размер рынка (TAM/SAM/SOM)
+  competitors         String?           // Анализ конкурентов
+  assumptions         String?           // Ключевые предположения
+
+  // Дизайн эксперимента
+  experimentMethod    String?           // Метод эксперимента
+  northStarMetric     String?           // Ведущая метрика (NSM)
+  successThreshold    String?           // Порог успеха
+  guardrailMetrics    String?           // Метрики-гардрейлы
+  sampleSize          Int?              // Размер выборки
+  testDuration        Int?              // Длительность теста (дни)
+  budget              Float?            // Бюджет эксперимента
+  channels            String?           // Каналы привлечения
+
+  // Результаты и выводы
+  experimentResults   String?           // Результаты эксперимента
+  conclusion          HypothesisConclusion? // Заключение по гипотезе
+  conclusionNotes     String?           // Примечания к заключению
+  nextSteps           String?           // Следующие шаги
+  lessonLearned       String?           // Извлеченные уроки
+
+  // Метаданные
+  ownerUserId         String?           // Владелец гипотезы (Product Lead)
+  finalPriority       Int?              // Итоговый приоритет после ICE-скоринга
+  researchCompleted   Boolean           @default(false)
+  experimentDesigned  Boolean           @default(false)
+
   ideaId              String
   createdBy           String
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
+
+  // Связи
   comments            Comment[]
   experiments         Experiment[]
   lessons             Lesson[]
   creator             User              @relation("HypothesisCreator", fields: [createdBy], references: [id])
+  owner               User?             @relation("HypothesisOwner", fields: [ownerUserId], references: [id])
   idea                Idea              @relation(fields: [ideaId], references: [id])
   successCriteria     SuccessCriteria[]
+  artifacts           Artifact[]
+  iceScores           ICEScore[]
+  transitions         HypothesisTransition[]
 }
 
 model Experiment {
@@ -227,6 +277,79 @@ model Attachment {
   mvp       MVP?     @relation(fields: [mvpId], references: [id])
 }
 
+model Artifact {
+  id            String     @id @default(cuid())
+  name          String     // Название источника
+  type          String     // Тип артефакта (исследование, статья, отчет)
+  url           String?    // Ссылка на источник
+  description   String?    // Краткое описание
+  conclusion    String     // Вывод из источника
+  hypothesisId  String
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  hypothesis    Hypothesis @relation(fields: [hypothesisId], references: [id])
+}
+
+model ICEScore {
+  id           String     @id @default(cuid())
+  impact       Int        // Влияние (1-10)
+  confidence   Int        // Уверенность (1-10)
+  ease         Int        // Простота реализации (1-10)
+  userId       String     // Кто оценивал
+  hypothesisId String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  user         User       @relation(fields: [userId], references: [id])
+  hypothesis   Hypothesis @relation(fields: [hypothesisId], references: [id])
+
+  @@unique([userId, hypothesisId])
+}
+
+model LabInventory {
+  id          String            @id @default(cuid())
+  category    InventoryCategory
+  name        String
+  description String?
+  details     Json?             // Дополнительные параметры в JSON формате
+  isActive    Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model HypothesisTransition {
+  id            String           @id @default(cuid())
+  hypothesisId  String
+  fromStatus    HypothesisStatus
+  toStatus      HypothesisStatus
+  fromLevel     HypothesisLevel?
+  toLevel       HypothesisLevel?
+  notes         String?          // Примечания к переходу
+  userId        String           // Кто выполнил переход
+  createdAt     DateTime         @default(now())
+  hypothesis    Hypothesis       @relation(fields: [hypothesisId], references: [id])
+  user          User             @relation("HypothesisTransitions", fields: [userId], references: [id])
+}
+
+model FormFieldConfig {
+  id          String              @id @default(cuid())
+  fieldName   String              // Название поля
+  stage       HypothesisStatus    // На каком этапе показывать
+  level       HypothesisLevel?    // Для какого уровня гипотезы
+  isRequired  Boolean             @default(false)
+  isVisible   Boolean             @default(true)
+  order       Int                 @default(0)
+  label       String              // Отображаемое название
+  placeholder String?             // Плейсхолдер
+  helpText    String?             // Подсказка
+  fieldType   FieldType           @default(TEXT)
+  options     Json?               // Для select, radio и т.д.
+  validation  Json?               // Правила валидации
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@unique([fieldName, stage, level])
+}
+
 model Activity {
   id           String        @id @default(cuid())
   type         ActivityType
@@ -279,12 +402,28 @@ model WorkflowStage {
 }
 
 enum UserRole {
-  PRODUCT_MANAGER
-  DESIGNER
-  MARKETER
-  ANALYST
-  MIDDLE_OFFICE
-  EXECUTIVE
+  // Команда лаборатории - полный доступ
+  LAB_DIRECTOR      // Руководитель лаборатории (Никита Титов)
+  PRODUCT_MANAGER   // Менеджер по продукту (Никита Злобин)
+  UX_RESEARCHER     // UX-исследователь (Ксения Зюбина)
+  MARKETER          // Маркетолог-экспериментатор (Павел Литвинов)
+  SALES_EXPERT      // Эксперт по продажам (Ольга Царькова)
+  OPERATIONS_EXPERT // Эксперт по операциям (Светлана Макарова)
+  HYPOTHESIS_OWNER  // Владелец гипотезы (назначаемый)
+
+  // Наблюдатели - только просмотр
+  VIEWER            // Наблюдатель
+  STAKEHOLDER       // Заинтересованная сторона
+
+  // Админ
+  ADMIN             // Администратор системы
+}
+
+enum UserStatus {
+  PENDING           // Ожидает активации
+  ACTIVE            // Активный пользователь
+  INACTIVE          // Неактивный
+  BLOCKED           // Заблокирован
 }
 
 enum Priority {
@@ -304,14 +443,16 @@ enum IdeaStatus {
 }
 
 enum HypothesisStatus {
-  DRAFT              // Черновик гипотезы
-  SCORED             // Прошла RICE-скоринг
-  DESK_RESEARCH      // Проводится Desk Research
-  READY_FOR_TESTING  // Готова к эксперименту
+  DRAFT              // Черновик гипотезы - этап "Гипотеза"
+  SCORED             // Прошла ICE-скоринг команды
+  RESEARCH           // Этап "Исследование" (3А)
+  EXPERIMENT_DESIGN  // Этап "Дизайн эксперимента" (3Б)
+  READY_FOR_TESTING  // Готова к эксперименту - этап "Эксперимент"
   IN_EXPERIMENT      // В процессе эксперимента
-  VALIDATED          // Подтверждена
-  INVALIDATED        // Опровергнута
-  INCONCLUSIVE       // Результат неоднозначен
+  COMPLETED          // Эксперимент завершен - этап "Результат"
+  VALIDATED          // Подтверждена - передача в продукт
+  INVALIDATED        // Опровергнута - закрытие
+  ITERATION          // Итерация - новый цикл
   ARCHIVED           // Архивирована
 }
 
@@ -363,4 +504,39 @@ enum ActivityType {
   EXPERIMENT_COMPLETED
   HYPOTHESIS_VALIDATED
   HYPOTHESIS_INVALIDATED
+}
+
+enum InventoryCategory {
+  TRAFFIC_SOURCE     // Источники трафика
+  SALES_VALIDATION   // Валидация через продажи
+  RESEARCH_TOOL      // Инструменты исследований
+  DEVELOPMENT_TOOL   // Инструменты разработки
+  ANALYTICS_TOOL     // Инструменты аналитики
+  OTHER             // Прочее
+}
+
+enum HypothesisLevel {
+  LEVEL_1           // Базовая гипотеза - формулировка "Если..., то..., потому что..."
+  LEVEL_2           // Детализированная гипотеза после Desk Research и дизайна эксперимента
+}
+
+enum HypothesisConclusion {
+  VALIDATED         // Подтверждена
+  INVALIDATED       // Опровергнута
+  INCONCLUSIVE      // Неоднозначный результат
+  NEEDS_MORE_DATA   // Нужно больше данных
+}
+
+enum FieldType {
+  TEXT              // Обычный текст
+  TEXTAREA          // Многострочный текст
+  NUMBER            // Число
+  DATE              // Дата
+  SELECT            // Выбор из списка
+  MULTISELECT       // Множественный выбор
+  RADIO             // Радио-кнопки
+  CHECKBOX          // Чекбокс
+  EMAIL             // Email
+  URL               // URL
+  FILE              // Файл
 }
