@@ -56,82 +56,18 @@ export default function KnowledgePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-gray-900">InLab CRM</h1>
-              <div className="text-sm text-gray-600">
-                {session?.user?.name}
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => signOut({ callbackUrl: "/" })}
-                className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
-              >
-                Выйти
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="bg-white border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
-            <Link href="/kanban" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>🌊</span>
-              <span>Канбан</span>
-            </Link>
-            <Link href="/ideas" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>💡</span>
-              <span>Идеи</span>
-            </Link>
-            <Link href="/hypotheses" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>🔬</span>
-              <span>Гипотезы</span>
-            </Link>
-            <Link href="/experiments" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>⚗️</span>
-              <span>Эксперименты</span>
-            </Link>
-            <Link href="/knowledge" className="border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600 flex items-center space-x-2">
-              <span>📚</span>
-              <span>База знаний</span>
-            </Link>
-            <Link href="/dashboard" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>📊</span>
-              <span>Статистика</span>
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      <div className="container mx-auto py-6 space-y-6">
-        {/* Заголовок */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <BookOpen className="h-8 w-8" />
-              База знаний
+    <AppLayout>
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">
+              📚 База знаний
             </h1>
             <p className="text-gray-600 mt-2">
-              Накапливайте и систематизируйте уроки из экспериментов и исследований
+              Накопленные знания, лучшие практики и уроки из экспериментов
             </p>
           </div>
-
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-lg px-3 py-1">
-              {stats.totalLessons} уроков
-            </Badge>
-          </div>
-        </div>
+          <div className="space-y-6">
 
       {/* Обзорная статистика */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -319,7 +255,9 @@ export default function KnowledgePage() {
           </div>
         </TabsContent>
       </Tabs>
-      </div>
-    </div>
+          </div>
+        </div>
+      </main>
+    </AppLayout>
   );
 }

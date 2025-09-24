@@ -86,93 +86,41 @@ export default function Dashboard() {
   const isReadOnlyUser = isViewer(userRole)
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-gray-900">InLab CRM</h1>
-              <div className="text-sm text-gray-600">
-                {session?.user?.name} | {getRoleDisplayName(session?.user?.role || '')}
-              </div>
-            </div>
+    <AppLayout>
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">
+              📊 Статистика и аналитика
+            </h1>
             <div className="flex items-center space-x-3">
-              <Button
-                variant="outline"
-                size="sm"
+              <button
                 onClick={fetchStats}
-                className="text-blue-600 hover:text-blue-700 border-blue-200 hover:border-blue-300"
+                className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
               >
                 🔄 Обновить
-              </Button>
-              <ExportButton />
-              {(session?.user?.role === 'ADMIN' || session?.user?.role === 'LAB_DIRECTOR') && (
-                <Link href="/admin">
-                  <Button variant="outline" size="sm">
-                    Админка
-                  </Button>
-                </Link>
+              </button>
+              {canCreate(session?.user?.role || '') && (
+                <>
+                  <Link href="/ideas/new" className="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700">
+                    💡 Создать идею
+                  </Link>
+                  <Link href="/hypotheses/new" className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                    🔬 Создать гипотезу
+                  </Link>
+                </>
               )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => signOut({ callbackUrl: "/" })}
-                className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
-              >
-                Выйти
-              </Button>
-              <Badge variant="secondary" className="text-xs">
-                v1.0.0
-              </Badge>
             </div>
           </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="bg-white border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
-            <Link href="/kanban" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>🌊</span>
-              <span>Канбан</span>
-            </Link>
-            <Link href="/ideas" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>💡</span>
-              <span>Идеи</span>
-            </Link>
-            <Link href="/hypotheses" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>🔬</span>
-              <span>Гипотезы</span>
-            </Link>
-            <Link href="/experiments" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>⚗️</span>
-              <span>Эксперименты</span>
-            </Link>
-            <Link href="/knowledge" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>📚</span>
-              <span>База знаний</span>
-            </Link>
-            <Link href="/dashboard" className="border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600 flex items-center space-x-2">
-              <span>📊</span>
-              <span>Статистика</span>
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {isReadOnlyUser && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-            <h3 className="font-medium text-amber-900 mb-2">Режим просмотра</h3>
-            <p className="text-amber-800 text-sm">
-              У вас есть доступ только для просмотра данных. Создание и редактирование недоступны.
-              Если вам нужен расширенный доступ, обратитесь к администратору.
-            </p>
-          </div>
-        )}
+          {isReadOnlyUser && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <h3 className="font-medium text-amber-900 mb-2">Режим просмотра</h3>
+              <p className="text-amber-800 text-sm">
+                У вас есть доступ только для просмотра данных. Создание и редактирование недоступны.
+                Если вам нужен расширенный доступ, обратитесь к администратору.
+              </p>
+            </div>
+          )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -315,15 +263,16 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Recent Activity */}
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-            <span className="text-2xl mr-2">📋</span>
-            Последние обновления
-          </h2>
-          <RecentActivity />
+          {/* Recent Activity */}
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+              <span className="text-2xl mr-2">📋</span>
+              Последние обновления
+            </h2>
+            <RecentActivity />
+          </div>
         </div>
-      </div>
-    </div>
+      </main>
+    </AppLayout>
   )
 }

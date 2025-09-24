@@ -1,10 +1,10 @@
 "use client"
 
-import { useSession, signOut } from "next-auth/react"
+import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import ExportButton from "@/components/ui/ExportButton"
+import AppLayout from "@/components/layout/AppLayout"
 
 interface Hypothesis {
   id: string
@@ -145,75 +145,11 @@ export default function Hypotheses() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <Link href="/dashboard" className="text-2xl font-bold text-gray-900">
-                InLab CRM
-              </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">
-                {session.user?.name || session.user?.email}
-              </div>
-              <ExportButton type="hypotheses" />
-              <Link
-                href="/hypotheses/new"
-                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700"
-              >
-                Создать гипотезу
-              </Link>
-              <button
-                onClick={() => signOut({ callbackUrl: "/" })}
-                className="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700"
-              >
-                Выйти
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="bg-white border-b shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8">
-            <Link href="/kanban" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>🌊</span>
-              <span>Канбан</span>
-            </Link>
-            <Link href="/ideas" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>💡</span>
-              <span>Идеи</span>
-            </Link>
-            <Link href="/hypotheses" className="border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600 flex items-center space-x-2">
-              <span>🔬</span>
-              <span>Гипотезы</span>
-            </Link>
-            <Link href="/experiments" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>⚗️</span>
-              <span>Эксперименты</span>
-            </Link>
-            <Link href="/knowledge" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>📚</span>
-              <span>База знаний</span>
-            </Link>
-            <Link href="/dashboard" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>📊</span>
-              <span>Статистика</span>
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
+    <AppLayout>
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Гипотезы</h1>
+            <h1 className="text-2xl font-bold text-gray-900">🔬 Гипотезы</h1>
             <div className="flex items-center space-x-4">
               <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Поиск..." className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
               <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm">
@@ -354,6 +290,6 @@ export default function Hypotheses() {
           )}
         </div>
       </main>
-    </div>
+    </AppLayout>
   )
 }

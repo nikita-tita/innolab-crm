@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { getRoleDisplayName } from "@/lib/permissions"
-import { HelpIcon, LogOut, Settings } from "lucide-react"
+import { HelpCircle, LogOut, Settings } from "lucide-react"
 import { useState } from "react"
 
 interface AppHeaderProps {
@@ -50,7 +50,7 @@ export default function AppHeader({ onHelpToggle, showHelp }: AppHeaderProps) {
                   onClick={onHelpToggle}
                   className={showHelp ? "bg-blue-50 text-blue-600" : ""}
                 >
-                  <HelpIcon className="w-4 h-4" />
+                  <HelpCircle className="w-4 h-4" />
                 </Button>
               )}
 
