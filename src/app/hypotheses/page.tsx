@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import Link from "next/link"
@@ -28,7 +28,7 @@ export default function Hypotheses() {
   const router = useRouter()
   const [hypotheses, setHypotheses] = useState<Hypothesis[]>([])
   const [loading, setLoading] = useState(true)
-  const [view, setView] = useState<'cards' | 'kanban'>('kanban')
+  const [view, setView] = useState<'cards' | 'create'>('cards')
   const [q, setQ] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("")
 
@@ -95,6 +95,7 @@ export default function Hypotheses() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "DRAFT": return "bg-gray-100 text-gray-800"
+      case "RESEARCH": return "bg-purple-100 text-purple-800"
       case "READY_FOR_TESTING": return "bg-blue-100 text-blue-800"
       case "IN_EXPERIMENT": return "bg-yellow-100 text-yellow-800"
       case "VALIDATED": return "bg-green-100 text-green-800"
@@ -107,6 +108,7 @@ export default function Hypotheses() {
   const getStatusText = (status: string) => {
     switch (status) {
       case "DRAFT": return "Черновик"
+      case "RESEARCH": return "Desk Research"
       case "READY_FOR_TESTING": return "Готова к тестированию"
       case "IN_EXPERIMENT": return "В эксперименте"
       case "VALIDATED": return "Подтверждена"
@@ -129,13 +131,6 @@ export default function Hypotheses() {
   const filtered = hypotheses.filter(h =>
     (!q || h.title.toLowerCase().includes(q.toLowerCase()) || h.statement.toLowerCase().includes(q.toLowerCase()))
   )
-  const groupedHypotheses = {
-    "DRAFT": filtered.filter(h => h.status === "DRAFT"),
-    "READY_FOR_TESTING": filtered.filter(h => h.status === "READY_FOR_TESTING"),
-    "IN_EXPERIMENT": filtered.filter(h => h.status === "IN_EXPERIMENT"),
-    "VALIDATED": filtered.filter(h => h.status === "VALIDATED"),
-    "INVALIDATED": filtered.filter(h => h.status === "INVALIDATED")
-  }
 
   if (status === "loading" || loading) {
     return (
@@ -157,7 +152,7 @@ export default function Hypotheses() {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <Link href="/dashboard" className="text-2xl font-bold text-gray-900">
-                InnoLab CRM
+                InLab CRM
               </Link>
             </div>
             <div className="flex items-center space-x-4">
@@ -171,29 +166,44 @@ export default function Hypotheses() {
               >
                 Создать гипотезу
               </Link>
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700"
+              >
+                Выйти
+              </button>
             </div>
           </div>
         </div>
       </header>
 
       {/* Navigation */}
-      <nav className="bg-white border-b">
+      <nav className="bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
-            <Link href="/dashboard" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              Дашборд
+            <Link href="/kanban" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>🌊</span>
+              <span>Канбан</span>
             </Link>
-            <Link href="/ideas" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              Идеи
+            <Link href="/ideas" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>💡</span>
+              <span>Идеи</span>
             </Link>
-            <Link href="/hypotheses" className="border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600">
-              Гипотезы
+            <Link href="/hypotheses" className="border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600 flex items-center space-x-2">
+              <span>🔬</span>
+              <span>Гипотезы</span>
             </Link>
-            <Link href="/experiments" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              Эксперименты
+            <Link href="/experiments" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>⚗️</span>
+              <span>Эксперименты</span>
             </Link>
-            <Link href="/knowledge" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              База знаний
+            <Link href="/knowledge" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>📚</span>
+              <span>База знаний</span>
+            </Link>
+            <Link href="/dashboard" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>📊</span>
+              <span>Статистика</span>
             </Link>
           </div>
         </div>
@@ -209,22 +219,13 @@ export default function Hypotheses() {
               <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm">
                 <option value="">Все статусы</option>
                 <option value="DRAFT">Черновик</option>
+                <option value="RESEARCH">Desk Research</option>
                 <option value="READY_FOR_TESTING">Готова к тестированию</option>
                 <option value="IN_EXPERIMENT">В эксперименте</option>
                 <option value="VALIDATED">Подтверждена</option>
                 <option value="INVALIDATED">Опровергнута</option>
               </select>
               <div className="flex bg-gray-100 rounded-lg p-1">
-                <button
-                  onClick={() => setView('kanban')}
-                  className={`px-3 py-1 rounded text-sm font-medium ${
-                    view === 'kanban'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Канбан
-                </button>
                 <button
                   onClick={() => setView('cards')}
                   className={`px-3 py-1 rounded text-sm font-medium ${
@@ -233,71 +234,54 @@ export default function Hypotheses() {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Карточки
+                  📋 Карточки
+                </button>
+                <button
+                  onClick={() => setView('create')}
+                  className={`px-3 py-1 rounded text-sm font-medium ${
+                    view === 'create'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  ➕ Создать
                 </button>
               </div>
             </div>
           </div>
 
-          {view === 'kanban' ? (
-            /* Kanban View */
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-              {Object.entries(groupedHypotheses).map(([status, statusHypotheses]) => (
-                <div key={status} className="bg-gray-100 rounded-lg p-4">
-                  <h3 className="font-medium text-gray-900 mb-4 flex items-center justify-between">
-                    <span>{getStatusText(status)}</span>
-                    <span className="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded-full">
-                      {statusHypotheses.length}
-                    </span>
-                  </h3>
-
-                  <div className="space-y-3">
-                    {statusHypotheses.map((hypothesis) => (
-                      <div key={hypothesis.id} className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                        <Link href={`/hypotheses/${hypothesis.id}`}>
-                          <h4 className="font-medium text-gray-900 mb-2 text-sm">
-                            {hypothesis.title}
-                          </h4>
-                          <p className="text-xs text-gray-600 mb-3 line-clamp-2">
-                            {hypothesis.statement}
-                          </p>
-
-                          <div className="flex items-center justify-between text-xs">
-                            <span className={`px-2 py-1 rounded ${getPriorityColor(hypothesis.priority)}`}>
-                              {hypothesis.priority}
-                            </span>
-                            <span className="text-gray-500">
-                              {hypothesis.confidenceLevel}%
-                            </span>
-                          </div>
-
-                          <div className="mt-2 text-xs text-gray-500">
-                            <div>Идея: {hypothesis.idea.title}</div>
-                            <div className="flex justify-between mt-1">
-                              <span>Автор: {hypothesis.creator.name}</span>
-                              <span>Эксп: {hypothesis.experimentsCount}</span>
-                            </div>
-                          </div>
-                        </Link>
-                      </div>
-                    ))}
+          {view === 'create' ? (
+            <div className="bg-white rounded-xl shadow-lg p-8 max-w-2xl mx-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+                🔬 Создание новой гипотезы
+              </h2>
+              <p className="text-gray-600 text-center mb-8">
+                Сформулируйте проверяемое предположение на основе вашей идеи
+              </p>
+              <div className="text-center">
+                <Link
+                  href="/hypotheses/new"
+                  className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-medium hover:bg-blue-700 transition-colors inline-block"
+                >
+                  Перейти к форме создания
+                </Link>
+              </div>
+              <div className="mt-8 bg-blue-50 rounded-lg p-6">
+                <h3 className="font-medium text-blue-900 mb-3">🔬 Структура гипотезы</h3>
+                <div className="text-blue-800 text-sm space-y-3">
+                  <div className="bg-white rounded p-3">
+                    <strong>Если</strong> [действие/изменение]<br/>
+                    <strong>То</strong> [ожидаемый результат]<br/>
+                    <strong>Потому что</strong> [обоснование]
                   </div>
-
-                  {status === 'DRAFT' && (
-                    <Link
-                      href="/hypotheses/new"
-                      className="mt-3 w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-center text-gray-500 hover:border-gray-400 hover:text-gray-600 transition-colors block"
-                    >
-                      + Добавить гипотезу
-                    </Link>
-                  )}
+                  <p className="text-xs">Пример: "Если добавим кнопку быстрого заказа, то увеличим конверсию на 15%, потому что пользователи смогут оформить заказ в один клик"</p>
                 </div>
-              ))}
+              </div>
             </div>
           ) : (
             /* Cards View */
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {hypotheses.map((hypothesis) => (
+              {filtered.map((hypothesis) => (
                 <div key={hypothesis.id} className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-start mb-4">
                     <h3 className="text-lg font-semibold text-gray-900 truncate pr-2">

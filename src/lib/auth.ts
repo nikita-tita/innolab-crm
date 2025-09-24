@@ -1,7 +1,7 @@
 import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "./prisma"
-import { getUserByCredentials, TEAM_MEMBERS, OBSERVERS } from "./team-config"
+import bcrypt from "bcryptjs"
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,47 +16,40 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        // Проверяем предустановленных пользователей команды
-        const teamUser = getUserByCredentials(credentials.email, credentials.password)
+        // Проверяем пользователя в базе данных
+        const dbUser = await prisma.user.findUnique({
+          where: { email: credentials.email }
+        })
 
-        if (teamUser) {
-          // Создаем или обновляем пользователя в базе данных
-          let dbUser = await prisma.user.findUnique({
-            where: { email: teamUser.email }
+        if (!dbUser) {
+          return null
+        }
+
+        // Проверяем статус пользователя
+        if (dbUser.status !== 'ACTIVE' || !dbUser.isActive) {
+          return null
+        }
+
+        // Для демо: простая проверка пароля (в продакшне используйте bcrypt)
+        // Проверяем пароль
+        const isValidPassword = await bcrypt.compare(credentials.password, dbUser.password || '')
+
+        // Для демо: админ с простым паролем
+        const isDemoAdmin = dbUser.email === 'admin@inlab.com' && credentials.password === 'admin2024'
+
+        if (isValidPassword || isDemoAdmin) {
+          // Обновляем время последнего входа
+          await prisma.user.update({
+            where: { id: dbUser.id },
+            data: { lastLoginAt: new Date() }
           })
-
-          if (!dbUser) {
-            // Создаем нового пользователя в БД
-            dbUser = await prisma.user.create({
-              data: {
-                id: teamUser.id,
-                email: teamUser.email,
-                name: teamUser.name,
-                role: teamUser.role as any,
-                status: 'ACTIVE',
-                isActive: true,
-                lastLoginAt: new Date()
-              }
-            })
-          } else {
-            // Обновляем время последнего входа
-            await prisma.user.update({
-              where: { id: dbUser.id },
-              data: {
-                lastLoginAt: new Date(),
-                name: teamUser.name, // Обновляем имя на случай изменений
-                role: teamUser.role as any
-              }
-            })
-          }
 
           return {
             id: dbUser.id,
             email: dbUser.email,
             name: dbUser.name,
             role: dbUser.role,
-            status: dbUser.status,
-            image: teamUser.avatar
+            status: dbUser.status
           }
         }
 
@@ -64,6 +57,9 @@ export const authOptions: NextAuthOptions = {
       }
     })
   ],
+  pages: {
+    signIn: '/auth/login'
+  },
   session: {
     strategy: "jwt"
   },
@@ -72,49 +68,46 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role
         token.status = user.status
-        token.picture = user.image
+        token.id = user.id
       }
       return token
     },
     async session({ session, token }) {
       if (token) {
-        session.user.id = token.sub!
+        session.user.id = token.id as string
         session.user.role = token.role as string
         session.user.status = token.status as string
-        session.user.image = token.picture as string
       }
       return session
     }
-  },
-  pages: {
-    signIn: "/auth/login",
   }
 }
 
-// Инициализация команды в базе данных
-export async function initializeTeam() {
+// Функция для создания админа
+export async function createAdmin() {
   try {
-    for (const member of [...TEAM_MEMBERS, ...OBSERVERS]) {
-      await prisma.user.upsert({
-        where: { email: member.email },
-        update: {
-          name: member.name,
-          role: member.role as any,
-          status: 'ACTIVE',
-          isActive: true
-        },
-        create: {
-          id: member.id,
-          email: member.email,
-          name: member.name,
-          role: member.role as any,
+    const existingAdmin = await prisma.user.findUnique({
+      where: { email: 'admin@inlab.com' }
+    })
+
+    if (!existingAdmin) {
+      const admin = await prisma.user.create({
+        data: {
+          email: 'admin@inlab.com',
+          name: 'Главный Администратор',
+          role: 'ADMIN',
           status: 'ACTIVE',
           isActive: true
         }
       })
+
+      console.log('✅ Администратор создан:', admin.email)
+      return admin
     }
-    console.log('✅ Команда лаборатории инициализирована')
+
+    return existingAdmin
   } catch (error) {
-    console.error('❌ Ошибка инициализации команды:', error)
+    console.error('❌ Ошибка создания администратора:', error)
+    throw error
   }
 }

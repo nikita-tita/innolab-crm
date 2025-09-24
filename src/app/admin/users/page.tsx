@@ -108,7 +108,7 @@ export default function AdminUsersPage() {
           <div className="flex items-center justify-between py-6">
             <div className="flex items-center">
               <Link href="/dashboard" className="text-2xl font-bold text-gray-900 mr-8">
-                InnoLab CRM
+                InLab CRM
               </Link>
               <h1 className="text-xl font-semibold text-gray-700">Управление пользователями</h1>
             </div>

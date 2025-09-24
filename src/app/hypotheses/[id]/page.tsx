@@ -78,9 +78,9 @@ export default function HypothesisDetails({ params }: { params: Promise<{ id: st
               <h1 className="text-2xl font-semibold text-gray-900 mb-4">{hypothesis.title}</h1>
 
               <div className="flex items-center gap-2 mb-4">
-                <Badge variant={hypothesis.status === 'DRAFT' ? 'secondary' : hypothesis.status === 'DESK_RESEARCH' ? 'default' : hypothesis.status === 'READY_FOR_TESTING' ? 'secondary' : 'default'}>
+                <Badge variant={hypothesis.status === 'DRAFT' ? 'secondary' : hypothesis.status === 'RESEARCH' ? 'default' : hypothesis.status === 'READY_FOR_TESTING' ? 'secondary' : 'default'}>
                   {hypothesis.status === 'DRAFT' ? 'Черновик' :
-                   hypothesis.status === 'DESK_RESEARCH' ? 'Desk Research' :
+                   hypothesis.status === 'RESEARCH' ? 'Desk Research' :
                    hypothesis.status === 'READY_FOR_TESTING' ? 'Готова к тесту' :
                    hypothesis.status === 'IN_EXPERIMENT' ? 'В эксперименте' : hypothesis.status}
                 </Badge>
@@ -263,7 +263,8 @@ export default function HypothesisDetails({ params }: { params: Promise<{ id: st
                       body: JSON.stringify(data)
                     });
                     if (response.ok) {
-                      window.location.reload();
+                      const updatedHypothesis = await response.json();
+                      setHypothesis(updatedHypothesis);
                     }
                   } catch (error) {
                     console.error("Error saving desk research:", error);
@@ -277,13 +278,14 @@ export default function HypothesisDetails({ params }: { params: Promise<{ id: st
                       body: JSON.stringify({ status: newStatus })
                     });
                     if (response.ok) {
-                      window.location.reload();
+                      const updatedHypothesis = await response.json();
+                      setHypothesis(updatedHypothesis);
                     }
                   } catch (error) {
                     console.error("Error updating status:", error);
                   }
                 }}
-                disabled={hypothesis.status !== "DESK_RESEARCH"}
+                disabled={hypothesis.status !== "RESEARCH"}
               />
             </TabsContent>
 
@@ -301,7 +303,8 @@ export default function HypothesisDetails({ params }: { params: Promise<{ id: st
                       body: JSON.stringify({ ...values, score })
                     });
                     if (response.ok) {
-                      window.location.reload();
+                      const updatedHypothesis = await response.json();
+                      setHypothesis(updatedHypothesis);
                     }
                   } catch (error) {
                     console.error("Error updating RICE score:", error);
@@ -314,31 +317,34 @@ export default function HypothesisDetails({ params }: { params: Promise<{ id: st
             <TabsContent value="success-criteria">
               <SuccessCriteriaManager
                 hypothesisId={hypothesis.id}
-                initialCriteria={[
-                  {
-                    id: "1",
-                    name: "Удержание пользователей",
-                    description: "Процент пользователей, остающихся активными через 30 дней",
-                    targetValue: 25,
-                    unit: "%",
-                    actualValue: 28.5,
-                    status: "achieved",
-                    priority: "high"
-                  },
-                  {
-                    id: "2",
-                    name: "Активность пользователей (DAU)",
-                    description: "Увеличение ежедневной активности пользователей",
-                    targetValue: 30,
-                    unit: "%",
-                    actualValue: 35.2,
-                    status: "achieved",
-                    priority: "medium"
+                initialCriteria={hypothesis.successCriteria?.map((sc: any) => ({
+                  id: sc.id,
+                  name: sc.name,
+                  description: sc.description || "",
+                  targetValue: sc.targetValue,
+                  unit: sc.unit,
+                  actualValue: sc.actualValue,
+                  status: sc.achieved ? "achieved" : (sc.actualValue !== null ? "in_progress" : "not_started"),
+                  priority: "medium"
+                })) || []}
+                onSave={async (criteria) => {
+                  try {
+                    const response = await fetch(`/api/hypotheses/${hypothesis.id}/success-criteria`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(criteria)
+                    });
+                    if (response.ok) {
+                      // Refetch the hypothesis to get updated success criteria
+                      const hypothesisResponse = await fetch(`/api/hypotheses/${hypothesis.id}`);
+                      if (hypothesisResponse.ok) {
+                        const updatedHypothesis = await hypothesisResponse.json();
+                        setHypothesis(updatedHypothesis);
+                      }
+                    }
+                  } catch (error) {
+                    console.error("Error saving success criteria:", error);
                   }
-                ]}
-                onSave={(criteria) => {
-                  console.log("Saving success criteria:", criteria);
-                  // Здесь будет API вызов для сохранения критериев успеха
                 }}
                 disabled={hypothesis.status === "DRAFT"}
                 showProgress={true}

@@ -17,39 +17,121 @@ import {
   Target
 } from "lucide-react";
 
+import Link from "next/link"
+import { useSession, signOut } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
+
 export default function KnowledgePage() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState("lessons");
 
-  // Статистика для демонстрации
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/")
+    }
+  }, [status, router])
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-lg">Загрузка...</div>
+      </div>
+    )
+  }
+
+  if (!session) {
+    return null
+  }
+
+  // Статистика пустая пока нет данных
   const stats = {
-    totalLessons: 47,
-    successRate: 68,
-    avgConfidence: 82,
-    topCategory: "Удержание пользователей",
-    recentLessons: 12,
-    popularTags: ["персонализация", "A/B тесты", "push-уведомления", "конверсия", "UX"]
+    totalLessons: 0,
+    successRate: 0,
+    avgConfidence: 0,
+    topCategory: "Нет данных",
+    recentLessons: 0,
+    popularTags: []
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Заголовок */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <BookOpen className="h-8 w-8" />
-            База знаний
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Накапливайте и систематизируйте уроки из экспериментов и исследований
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center space-x-4">
+              <h1 className="text-2xl font-bold text-gray-900">InLab CRM</h1>
+              <div className="text-sm text-gray-600">
+                {session?.user?.name}
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+              >
+                Выйти
+              </Button>
+            </div>
+          </div>
         </div>
+      </header>
 
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-lg px-3 py-1">
-            {stats.totalLessons} уроков
-          </Badge>
+      {/* Navigation */}
+      <nav className="bg-white border-b shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex space-x-8">
+            <Link href="/kanban" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>🌊</span>
+              <span>Канбан</span>
+            </Link>
+            <Link href="/ideas" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>💡</span>
+              <span>Идеи</span>
+            </Link>
+            <Link href="/hypotheses" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>🔬</span>
+              <span>Гипотезы</span>
+            </Link>
+            <Link href="/experiments" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>⚗️</span>
+              <span>Эксперименты</span>
+            </Link>
+            <Link href="/knowledge" className="border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600 flex items-center space-x-2">
+              <span>📚</span>
+              <span>База знаний</span>
+            </Link>
+            <Link href="/dashboard" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>📊</span>
+              <span>Статистика</span>
+            </Link>
+          </div>
         </div>
-      </div>
+      </nav>
+
+      <div className="container mx-auto py-6 space-y-6">
+        {/* Заголовок */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <BookOpen className="h-8 w-8" />
+              База знаний
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Накапливайте и систематизируйте уроки из экспериментов и исследований
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-lg px-3 py-1">
+              {stats.totalLessons} уроков
+            </Badge>
+          </div>
+        </div>
 
       {/* Обзорная статистика */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -130,8 +212,8 @@ export default function KnowledgePage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                     <div>
-                      <h4 className="font-medium">RICE Prioritization</h4>
-                      <p className="text-sm text-gray-600">Как правильно оценивать идеи и гипотезы</p>
+                      <h4 className="font-medium">ICE Evaluation</h4>
+                      <p className="text-sm text-gray-600">Командная оценка идей по критериям Impact, Confidence, Ease</p>
                     </div>
                     <Button variant="outline" size="sm">Открыть</Button>
                   </div>
@@ -139,15 +221,15 @@ export default function KnowledgePage() {
                   <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                     <div>
                       <h4 className="font-medium">Desk Research</h4>
-                      <p className="text-sm text-gray-600">Методы кабинетных исследований</p>
+                      <p className="text-sm text-gray-600">Методы кабинетных исследований для проработки гипотез</p>
                     </div>
                     <Button variant="outline" size="sm">Открыть</Button>
                   </div>
 
                   <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
                     <div>
-                      <h4 className="font-medium">A/B Testing Best Practices</h4>
-                      <p className="text-sm text-gray-600">Лучшие практики проведения экспериментов</p>
+                      <h4 className="font-medium">Методы валидации</h4>
+                      <p className="text-sm text-gray-600">Быстрые и дешевые способы проверки гипотез</p>
                     </div>
                     <Button variant="outline" size="sm">Открыть</Button>
                   </div>
@@ -189,35 +271,47 @@ export default function KnowledgePage() {
               </CardContent>
             </Card>
 
-            {/* Процесс HADI */}
+            {/* Инновационная воронка */}
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle>Процесс HADI + RICE</CardTitle>
+                <CardTitle>Инновационная воронка InLab</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600 mb-2">H</div>
-                    <h4 className="font-medium mb-1">Hypothesis</h4>
-                    <p className="text-xs text-gray-600">Формулирование проверяемых гипотез с RICE-оценкой</p>
+                <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
+                  <div className="text-center p-3 bg-blue-50 rounded-lg">
+                    <div className="text-xl font-bold text-blue-600 mb-1">💡</div>
+                    <h4 className="font-medium text-sm mb-1">Идея</h4>
+                    <p className="text-xs text-gray-600">Описание + ICE оценка</p>
                   </div>
 
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600 mb-2">A</div>
-                    <h4 className="font-medium mb-1">Action</h4>
-                    <p className="text-xs text-gray-600">Планирование и проведение экспериментов</p>
+                  <div className="text-center p-3 bg-green-50 rounded-lg">
+                    <div className="text-xl font-bold text-green-600 mb-1">🔬</div>
+                    <h4 className="font-medium text-sm mb-1">Гипотеза L1</h4>
+                    <p className="text-xs text-gray-600">Формулировка</p>
                   </div>
 
-                  <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                    <div className="text-2xl font-bold text-yellow-600 mb-2">D</div>
-                    <h4 className="font-medium mb-1">Data</h4>
-                    <p className="text-xs text-gray-600">Сбор и анализ результатов тестирования</p>
+                  <div className="text-center p-3 bg-yellow-50 rounded-lg">
+                    <div className="text-xl font-bold text-yellow-600 mb-1">📚</div>
+                    <h4 className="font-medium text-sm mb-1">Гипотеза L2</h4>
+                    <p className="text-xs text-gray-600">+ Desk research</p>
                   </div>
 
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600 mb-2">I</div>
-                    <h4 className="font-medium mb-1">Insights</h4>
-                    <p className="text-xs text-gray-600">Извлечение уроков и планирование следующих шагов</p>
+                  <div className="text-center p-3 bg-purple-50 rounded-lg">
+                    <div className="text-xl font-bold text-purple-600 mb-1">⚗️</div>
+                    <h4 className="font-medium text-sm mb-1">Эксперимент</h4>
+                    <p className="text-xs text-gray-600">Валидация</p>
+                  </div>
+
+                  <div className="text-center p-3 bg-emerald-50 rounded-lg">
+                    <div className="text-xl font-bold text-emerald-600 mb-1">🚀</div>
+                    <h4 className="font-medium text-sm mb-1">InLab</h4>
+                    <p className="text-xs text-gray-600">Если подтверждена</p>
+                  </div>
+
+                  <div className="text-center p-3 bg-orange-50 rounded-lg">
+                    <div className="text-xl font-bold text-orange-600 mb-1">🏢</div>
+                    <h4 className="font-medium text-sm mb-1">М2</h4>
+                    <p className="text-xs text-gray-600">Продуктовая линейка</p>
                   </div>
                 </div>
               </CardContent>
@@ -225,6 +319,7 @@ export default function KnowledgePage() {
           </div>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }

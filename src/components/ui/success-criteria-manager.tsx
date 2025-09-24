@@ -64,23 +64,41 @@ export function SuccessCriteriaManager({
     setCriteria(initialCriteria);
   }, [initialCriteria]);
 
-  const addCriteria = () => {
+  const addCriteria = async () => {
     if (!newCriteria.name || newCriteria.targetValue === undefined) return;
 
-    const criteria_item: SuccessCriteria = {
-      id: Date.now().toString(),
-      name: newCriteria.name,
-      description: newCriteria.description || "",
-      targetValue: newCriteria.targetValue,
-      unit: newCriteria.unit || "%",
-      priority: newCriteria.priority || "medium",
-      status: "not_started",
-      measurementMethod: newCriteria.measurementMethod,
-      timeline: newCriteria.timeline
-    };
+    try {
+      const response = await fetch(`/api/hypotheses/${hypothesisId}/success-criteria`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newCriteria.name,
+          description: newCriteria.description || "",
+          targetValue: newCriteria.targetValue,
+          unit: newCriteria.unit || "%",
+          actualValue: null
+        })
+      });
 
-    setCriteria(prev => [...prev, criteria_item]);
-    setNewCriteria(defaultCriteria);
+      if (response.ok) {
+        const created = await response.json();
+        const criteria_item: SuccessCriteria = {
+          id: created.id,
+          name: created.name,
+          description: created.description || "",
+          targetValue: created.targetValue,
+          unit: created.unit,
+          actualValue: created.actualValue,
+          status: "not_started",
+          priority: newCriteria.priority || "medium"
+        };
+
+        setCriteria(prev => [...prev, criteria_item]);
+        setNewCriteria(defaultCriteria);
+      }
+    } catch (error) {
+      console.error("Error creating success criteria:", error);
+    }
   };
 
   const updateCriteria = (id: string, updates: Partial<SuccessCriteria>) => {
@@ -89,8 +107,18 @@ export function SuccessCriteriaManager({
     ));
   };
 
-  const removeCriteria = (id: string) => {
-    setCriteria(prev => prev.filter(item => item.id !== id));
+  const removeCriteria = async (id: string) => {
+    try {
+      const response = await fetch(`/api/success-criteria/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setCriteria(prev => prev.filter(item => item.id !== id));
+      }
+    } catch (error) {
+      console.error("Error deleting success criteria:", error);
+    }
   };
 
   const handleSave = () => {
@@ -256,7 +284,28 @@ export function SuccessCriteriaManager({
                     </div>
 
                     <div className="flex gap-2 pt-2">
-                      <Button size="sm" onClick={() => setEditingItem(null)}>
+                      <Button size="sm" onClick={async () => {
+                        try {
+                          const response = await fetch(`/api/success-criteria/${item.id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              name: item.name,
+                              description: item.description,
+                              targetValue: item.targetValue,
+                              actualValue: item.actualValue,
+                              unit: item.unit,
+                              achieved: item.actualValue !== undefined && item.actualValue >= item.targetValue
+                            })
+                          });
+
+                          if (response.ok) {
+                            setEditingItem(null);
+                          }
+                        } catch (error) {
+                          console.error("Error updating success criteria:", error);
+                        }
+                      }}>
                         <Save className="h-4 w-4 mr-1" />
                         Сохранить
                       </Button>

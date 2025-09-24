@@ -40,7 +40,7 @@ export default function AdminDashboard() {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <Link href="/dashboard" className="text-2xl font-bold text-gray-900">
-                InnoLab CRM - Админка
+                InLab CRM - Админка
               </Link>
             </div>
             <div className="flex items-center space-x-4">

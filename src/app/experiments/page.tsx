@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import Link from "next/link"
@@ -32,7 +32,7 @@ export default function Experiments() {
   const router = useRouter()
   const [experiments, setExperiments] = useState<Experiment[]>([])
   const [loading, setLoading] = useState(true)
-  const [view, setView] = useState<'cards' | 'kanban'>('kanban')
+  const [view, setView] = useState<'cards' | 'create'>('cards')
   const [q, setQ] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("")
 
@@ -129,13 +129,6 @@ export default function Experiments() {
   const filtered = experiments.filter(e =>
     (!q || e.title.toLowerCase().includes(q.toLowerCase()) || e.description.toLowerCase().includes(q.toLowerCase()))
   )
-  const groupedExperiments = {
-    "PLANNING": filtered.filter(e => e.status === "PLANNING"),
-    "RUNNING": filtered.filter(e => e.status === "RUNNING"),
-    "PAUSED": filtered.filter(e => e.status === "PAUSED"),
-    "COMPLETED": filtered.filter(e => e.status === "COMPLETED"),
-    "CANCELLED": filtered.filter(e => e.status === "CANCELLED")
-  }
 
   if (status === "loading" || loading) {
     return (
@@ -157,7 +150,7 @@ export default function Experiments() {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <Link href="/dashboard" className="text-2xl font-bold text-gray-900">
-                InnoLab CRM
+                InLab CRM
               </Link>
             </div>
             <div className="flex items-center space-x-4">
@@ -170,29 +163,44 @@ export default function Experiments() {
               >
                 Создать эксперимент
               </Link>
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700"
+              >
+                Выйти
+              </button>
             </div>
           </div>
         </div>
       </header>
 
       {/* Navigation */}
-      <nav className="bg-white border-b">
+      <nav className="bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
-            <Link href="/dashboard" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              Дашборд
+            <Link href="/kanban" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>🌊</span>
+              <span>Канбан</span>
             </Link>
-            <Link href="/ideas" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              Идеи
+            <Link href="/ideas" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>💡</span>
+              <span>Идеи</span>
             </Link>
-            <Link href="/hypotheses" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              Гипотезы
+            <Link href="/hypotheses" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>🔬</span>
+              <span>Гипотезы</span>
             </Link>
-            <Link href="/experiments" className="border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600">
-              Эксперименты
+            <Link href="/experiments" className="border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600 flex items-center space-x-2">
+              <span>⚗️</span>
+              <span>Эксперименты</span>
             </Link>
-            <Link href="/knowledge" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              База знаний
+            <Link href="/knowledge" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>📚</span>
+              <span>База знаний</span>
+            </Link>
+            <Link href="/dashboard" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>📊</span>
+              <span>Статистика</span>
             </Link>
           </div>
         </div>
@@ -202,7 +210,7 @@ export default function Experiments() {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Эксперименты</h1>
+            <h1 className="text-2xl font-bold text-gray-900">⚗️ Эксперименты</h1>
             <div className="flex items-center space-x-4">
               <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Поиск..." className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
               <select value={statusFilter} onChange={e=>setStatusFilter(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm">
@@ -215,16 +223,6 @@ export default function Experiments() {
               </select>
               <div className="flex bg-gray-100 rounded-lg p-1">
                 <button
-                  onClick={() => setView('kanban')}
-                  className={`px-3 py-1 rounded text-sm font-medium ${
-                    view === 'kanban'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Канбан
-                </button>
-                <button
                   onClick={() => setView('cards')}
                   className={`px-3 py-1 rounded text-sm font-medium ${
                     view === 'cards'
@@ -232,74 +230,113 @@ export default function Experiments() {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Карточки
+                  📋 Карточки
+                </button>
+                <button
+                  onClick={() => setView('create')}
+                  className={`px-3 py-1 rounded text-sm font-medium ${
+                    view === 'create'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  ➕ Создать
                 </button>
               </div>
             </div>
           </div>
 
-          {view === 'kanban' ? (
-            /* Kanban View */
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-              {Object.entries(groupedExperiments).map(([status, statusExperiments]) => (
-                <div key={status} className="bg-gray-100 rounded-lg p-4">
-                  <h3 className="font-medium text-gray-900 mb-4 flex items-center justify-between">
-                    <span>{getStatusText(status)}</span>
-                    <span className="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded-full">
-                      {statusExperiments.length}
-                    </span>
-                  </h3>
-
-                  <div className="space-y-3">
-                    {statusExperiments.map((experiment) => (
-                      <div key={experiment.id} className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                        <Link href={`/experiments/${experiment.id}`}>
-                          <h4 className="font-medium text-gray-900 mb-2 text-sm">
-                            {experiment.title}
-                          </h4>
-                          <p className="text-xs text-gray-600 mb-3 line-clamp-2">
-                            {experiment.description}
-                          </p>
-
-                          <div className="text-xs text-gray-500 mb-2">
-                            <div>Гипотеза: {experiment.hypothesis.title}</div>
-                            <div>Идея: {experiment.hypothesis.idea.title}</div>
-                          </div>
-
-                          {experiment.methodology && (
-                            <div className="text-xs text-blue-600 mb-2">
-                              Метод: {experiment.methodology}
-                            </div>
-                          )}
-
-                          <div className="flex justify-between text-xs text-gray-500">
-                            <span>MVP: {experiment.mvpsCount}</span>
-                            <span>Комментарии: {experiment.commentsCount}</span>
-                          </div>
-
-                          <div className="mt-2 text-xs text-gray-500">
-                            Автор: {experiment.creator.name}
-                          </div>
-                        </Link>
-                      </div>
-                    ))}
-                  </div>
-
-                  {status === 'PLANNING' && (
-                    <Link
-                      href="/experiments/new"
-                      className="mt-3 w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-center text-gray-500 hover:border-gray-400 hover:text-gray-600 transition-colors block"
-                    >
-                      + Добавить эксперимент
-                    </Link>
-                  )}
+          {/* Info Section */}
+          {experiments.length === 0 && (
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 mb-6">
+              <h2 className="text-lg font-semibold text-purple-900 mb-2">🧪 Начните с первого эксперимента!</h2>
+              <p className="text-purple-800 mb-4">
+                Эксперименты — это быстрые и дешевые способы проверить ваши гипотезы на практике.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                <div className="bg-purple-100 rounded-lg p-3">
+                  <h3 className="font-medium text-purple-900 mb-1">Планирование</h3>
+                  <p className="text-purple-800">Определите метрики и критерии успеха</p>
                 </div>
-              ))}
+                <div className="bg-purple-100 rounded-lg p-3">
+                  <h3 className="font-medium text-purple-900 mb-1">Выполнение</h3>
+                  <p className="text-purple-800">Запустите MVP, лендинг или опрос</p>
+                </div>
+                <div className="bg-purple-100 rounded-lg p-3">
+                  <h3 className="font-medium text-purple-900 mb-1">Сбор данных</h3>
+                  <p className="text-purple-800">Фиксируйте результаты тестирования</p>
+                </div>
+                <div className="bg-purple-100 rounded-lg p-3">
+                  <h3 className="font-medium text-purple-900 mb-1">Выводы</h3>
+                  <p className="text-purple-800">Подтвердите или опровергните гипотезу</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {experiments.length > 0 && (
+            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-medium text-indigo-900">
+                    📊 Всего экспериментов: {experiments.length}
+                  </h3>
+                  <p className="text-xs text-indigo-700 mt-1">
+                    Используйте канбан-доску для отслеживания прогресса или карточки для детального просмотра
+                  </p>
+                </div>
+                <Link
+                  href="/experiments/new"
+                  className="bg-indigo-600 text-white px-3 py-1 rounded text-xs hover:bg-indigo-700"
+                >
+                  + Добавить эксперимент
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {view === 'create' ? (
+            <div className="bg-white rounded-xl shadow-lg p-8 max-w-2xl mx-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+                ⚗️ Создание нового эксперимента
+              </h2>
+              <p className="text-gray-600 text-center mb-8">
+                Спланируйте эксперимент для проверки вашей гипотезы
+              </p>
+              <div className="text-center">
+                <Link
+                  href="/experiments/new"
+                  className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-medium hover:bg-blue-700 transition-colors inline-block"
+                >
+                  Перейти к форме создания
+                </Link>
+              </div>
+              <div className="mt-8 bg-blue-50 rounded-lg p-6">
+                <h3 className="font-medium text-blue-900 mb-3">⚗️ Типы экспериментов</h3>
+                <div className="text-blue-800 text-sm space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span>🖥️</span>
+                    <span><strong>Лендинг-пейдж</strong> — тестирование интереса к продукту</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>📊</span>
+                    <span><strong>A/B тест</strong> — сравнение двух вариантов решения</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>📱</span>
+                    <span><strong>MVP</strong> — минимально жизнеспособный продукт</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>📋</span>
+                    <span><strong>Опрос</strong> — изучение потребностей аудитории</span>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
             /* Cards View */
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {experiments.map((experiment) => (
+              {filtered.map((experiment) => (
                 <div key={experiment.id} className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-start mb-4">
                     <h3 className="text-lg font-semibold text-gray-900 truncate pr-2">

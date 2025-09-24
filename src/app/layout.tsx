@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "InnoLab CRM - Управление инновационными гипотезами",
+  title: "InLab CRM - Управление инновационными гипотезами",
   description: "Адаптивный IT-сервис для управления инновационными гипотезами с использованием методологии HADI",
 };
 

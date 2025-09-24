@@ -61,7 +61,7 @@ export default function RegisterPage() {
         {/* Header */}
         <div className="text-center">
           <Link href="/" className="text-2xl font-bold text-gray-900">
-            InnoLab CRM
+            InLab CRM
           </Link>
           <p className="mt-2 text-gray-600">Регистрация в системе</p>
         </div>

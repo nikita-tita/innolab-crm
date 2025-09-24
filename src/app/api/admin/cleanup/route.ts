@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { initializeTeam } from "@/lib/auth"
+import { createAdmin } from "@/lib/auth"
 
 export async function POST(request: NextRequest) {
   try {
@@ -67,8 +67,8 @@ export async function POST(request: NextRequest) {
       await tx.account.deleteMany({})
     })
 
-    // Инициализируем команду заново
-    await initializeTeam()
+    // Убеждаемся, что админ существует
+    await createAdmin()
 
     return NextResponse.json({
       message: "Все данные успешно очищены. Команда заново инициализирована.",

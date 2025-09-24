@@ -140,7 +140,7 @@ function NewMVPInner() {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <Link href="/dashboard" className="text-2xl font-bold text-gray-900">
-                InnoLab CRM
+                InLab CRM
               </Link>
             </div>
             <div className="text-sm text-gray-600">

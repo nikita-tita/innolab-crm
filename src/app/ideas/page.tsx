@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import Link from "next/link"
@@ -31,6 +31,7 @@ export default function Ideas() {
   const router = useRouter()
   const [ideas, setIdeas] = useState<Idea[]>([])
   const [loading, setLoading] = useState(true)
+  const [view, setView] = useState<'cards' | 'create'>('cards')
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -124,7 +125,7 @@ export default function Ideas() {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <Link href="/dashboard" className="text-2xl font-bold text-gray-900">
-                InnoLab CRM
+                InLab CRM
               </Link>
             </div>
             <div className="flex items-center space-x-4">
@@ -138,29 +139,44 @@ export default function Ideas() {
               >
                 Добавить идею
               </Link>
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700"
+              >
+                Выйти
+              </button>
             </div>
           </div>
         </div>
       </header>
 
       {/* Navigation */}
-      <nav className="bg-white border-b">
+      <nav className="bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
-            <Link href="/dashboard" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              Дашборд
+            <Link href="/kanban" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>🌊</span>
+              <span>Канбан</span>
             </Link>
-            <Link href="/ideas" className="border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600">
-              Идеи
+            <Link href="/ideas" className="border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600 flex items-center space-x-2">
+              <span>💡</span>
+              <span>Идеи</span>
             </Link>
-            <Link href="/hypotheses" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              Гипотезы
+            <Link href="/hypotheses" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>🔬</span>
+              <span>Гипотезы</span>
             </Link>
-            <Link href="/experiments" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              Эксперименты
+            <Link href="/experiments" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>⚗️</span>
+              <span>Эксперименты</span>
             </Link>
-            <Link href="/knowledge" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              База знаний
+            <Link href="/knowledge" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>📚</span>
+              <span>База знаний</span>
+            </Link>
+            <Link href="/dashboard" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>📊</span>
+              <span>Статистика</span>
             </Link>
           </div>
         </div>
@@ -170,102 +186,205 @@ export default function Ideas() {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Идеи</h1>
+            <h1 className="text-2xl font-bold text-gray-900">💡 Идеи</h1>
             <div className="flex space-x-4">
-              <select className="border border-gray-300 rounded-md px-3 py-2 text-sm">
-                <option>Все статусы</option>
-                <option>Новые</option>
-                <option>На рассмотрении</option>
-                <option>Одобренные</option>
-              </select>
-              <select className="border border-gray-300 rounded-md px-3 py-2 text-sm">
-                <option>Все приоритеты</option>
-                <option>Критический</option>
-                <option>Высокий</option>
-                <option>Средний</option>
-                <option>Низкий</option>
-              </select>
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setView('cards')}
+                  className={`px-3 py-1 rounded text-sm font-medium ${
+                    view === 'cards'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  📋 Карточки
+                </button>
+                <button
+                  onClick={() => setView('create')}
+                  className={`px-3 py-1 rounded text-sm font-medium ${
+                    view === 'create'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  ➕ Создать
+                </button>
+              </div>
+              {view === 'cards' && (
+                <>
+                  <select className="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                    <option>Все статусы</option>
+                    <option>Новые</option>
+                    <option>На рассмотрении</option>
+                    <option>Одобренные</option>
+                  </select>
+                  <select className="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                    <option>Все приоритеты</option>
+                    <option>Критический</option>
+                    <option>Высокий</option>
+                    <option>Средний</option>
+                    <option>Низкий</option>
+                  </select>
+                </>
+              )}
             </div>
           </div>
 
-          {/* Ideas Grid */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {ideas
-              .sort((a, b) => {
-                // Sort by RICE score first (descending), then by creation date
-                if (a.riceScore && b.riceScore) {
-                  return b.riceScore - a.riceScore
-                }
-                if (a.riceScore && !b.riceScore) return -1
-                if (!a.riceScore && b.riceScore) return 1
-                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-              })
-              .map((idea) => (
-              <div key={idea.id} className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 truncate pr-2">
-                    {idea.title}
-                  </h3>
-                  <div className="flex space-x-1">
-                    <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(idea.status)}`}>
-                      {getStatusText(idea.status)}
-                    </span>
+          {/* Content based on view */}
+          {view === 'create' ? (
+            <div className="bg-white rounded-xl shadow-lg p-8 max-w-2xl mx-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+                💡 Создание новой идеи
+              </h2>
+              <p className="text-gray-600 text-center mb-8">
+                Опишите вашу идею для оценки и проработки командой
+              </p>
+              <div className="text-center">
+                <Link
+                  href="/ideas/new"
+                  className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-medium hover:bg-blue-700 transition-colors inline-block"
+                >
+                  Перейти к форме создания
+                </Link>
+              </div>
+              <div className="mt-8 bg-blue-50 rounded-lg p-6">
+                <h3 className="font-medium text-blue-900 mb-3">💡 Что такое хорошая идея?</h3>
+                <ul className="text-blue-800 text-sm space-y-2">
+                  <li>• Четко описывает проблему или возможность</li>
+                  <li>• Предлагает конкретное решение</li>
+                  <li>• Имеет потенциал для создания ценности</li>
+                  <li>• Может быть проверена экспериментально</li>
+                </ul>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Info Section */}
+              {ideas.length === 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                  <h2 className="text-lg font-semibold text-blue-900 mb-2">🚀 Начните с создания первой идеи!</h2>
+                  <p className="text-blue-800 mb-4">
+                    Идеи — это отправная точка инновационного процесса. Здесь команда собирает и оценивает предложения
+                    по улучшению продуктов и созданию новых решений.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div className="bg-blue-100 rounded-lg p-3">
+                      <h3 className="font-medium text-blue-900 mb-1">1. Создание</h3>
+                      <p className="text-blue-800">Опишите идею в свободной форме</p>
+                    </div>
+                    <div className="bg-blue-100 rounded-lg p-3">
+                      <h3 className="font-medium text-blue-900 mb-1">2. Оценка ICE</h3>
+                      <p className="text-blue-800">Команда оценивает Impact, Confidence, Ease</p>
+                    </div>
+                    <div className="bg-blue-100 rounded-lg p-3">
+                      <h3 className="font-medium text-blue-900 mb-1">3. Приоритизация</h3>
+                      <p className="text-blue-800">Лучшие идеи становятся гипотезами</p>
+                    </div>
                   </div>
                 </div>
+              )}
 
-                <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                  {idea.description}
-                </p>
-
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span className="bg-gray-100 px-2 py-1 rounded">{idea.category || 'Без категории'}</span>
-                    <span className={`px-2 py-1 rounded ${getPriorityColor(idea.priority)}`}>
-                      {getPriorityText(idea.priority)}
-                    </span>
+              {ideas.length > 0 && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-medium text-green-900">
+                        📊 Всего идей: {ideas.length}
+                      </h3>
+                      <p className="text-xs text-green-700 mt-1">
+                        Посмотрите весь процесс развития идей на канбан-доске или нажмите на карточку для детального просмотра
+                      </p>
+                    </div>
+                    <Link
+                      href="/ideas/new"
+                      className="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700"
+                    >
+                      + Добавить еще
+                    </Link>
                   </div>
+                </div>
+              )}
 
-                  {/* RICE Score Display */}
-                  {idea.riceScore && (
-                    <div className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-2 rounded-md">
-                      <div className="text-xs text-gray-600">
-                        <span className="font-medium">RICE Score:</span>
+              {/* Ideas Grid */}
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {ideas
+                  .sort((a, b) => {
+                    // Sort by RICE score first (descending), then by creation date
+                    if (a.riceScore && b.riceScore) {
+                      return b.riceScore - a.riceScore
+                    }
+                    if (a.riceScore && !b.riceScore) return -1
+                    if (!a.riceScore && b.riceScore) return 1
+                    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                  })
+                  .map((idea) => (
+                  <div key={idea.id} className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900 truncate pr-2">
+                        {idea.title}
+                      </h3>
+                      <div className="flex space-x-1">
+                        <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(idea.status)}`}>
+                          {getStatusText(idea.status)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                      {idea.description}
+                    </p>
+
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center justify-between text-sm text-gray-500">
+                        <span className="bg-gray-100 px-2 py-1 rounded">{idea.category || 'Без категории'}</span>
+                        <span className={`px-2 py-1 rounded ${getPriorityColor(idea.priority)}`}>
+                          {getPriorityText(idea.priority)}
+                        </span>
+                      </div>
+
+                      {/* RICE Score Display */}
+                      {idea.riceScore && (
+                        <div className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-2 rounded-md">
+                          <div className="text-xs text-gray-600">
+                            <span className="font-medium">RICE Score:</span>
+                            <div className="text-xs text-gray-500">
+                              {idea.reach} × {idea.impact} × {idea.confidence}% ÷ {idea.effort}
+                            </div>
+                          </div>
+                          <div className="text-lg font-bold text-blue-600">
+                            {Math.round(idea.riceScore)}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="border-t pt-4">
+                      <div className="flex items-center justify-between">
                         <div className="text-xs text-gray-500">
-                          {idea.reach} × {idea.impact} × {idea.confidence}% ÷ {idea.effort}
+                          <div>Автор: {idea.creator.name}</div>
+                          <div>Создано: {new Date(idea.createdAt).toLocaleDateString('ru-RU')}</div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Link
+                            href={`/ideas/${idea.id}`}
+                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                          >
+                            Подробнее
+                          </Link>
+                          <Link
+                            href={`/hypotheses/new?ideaId=${idea.id}`}
+                            className="text-green-600 hover:text-green-800 text-sm font-medium"
+                          >
+                            Создать гипотезу
+                          </Link>
                         </div>
                       </div>
-                      <div className="text-lg font-bold text-blue-600">
-                        {Math.round(idea.riceScore)}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="border-t pt-4">
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs text-gray-500">
-                      <div>Автор: {idea.creator.name}</div>
-                      <div>Создано: {new Date(idea.createdAt).toLocaleDateString('ru-RU')}</div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Link
-                        href={`/ideas/${idea.id}`}
-                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                      >
-                        Подробнее
-                      </Link>
-                      <Link
-                        href={`/hypotheses/new?ideaId=${idea.id}`}
-                        className="text-green-600 hover:text-green-800 text-sm font-medium"
-                      >
-                        Создать гипотезу
-                      </Link>
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          )}
 
           {ideas.length === 0 && !loading && (
             <div className="text-center py-12">

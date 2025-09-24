@@ -27,6 +27,7 @@ function NewHypothesisInner() {
     statement: "",
     description: "",
     ideaId: ideaId || "",
+    level: "LEVEL_1",
     priority: "MEDIUM",
     confidenceLevel: 70,
     testingMethod: "",
@@ -42,7 +43,10 @@ function NewHypothesisInner() {
     financialImpact: "",
     strategicAlignment: "",
     deskResearchNotes: "",
-    deskResearchSources: ""
+    deskResearchSources: "",
+    actionDescription: "",
+    expectedResult: "",
+    reasoning: ""
   })
   const [activeTab, setActiveTab] = useState("basic")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -163,7 +167,7 @@ function NewHypothesisInner() {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <Link href="/dashboard" className="text-2xl font-bold text-gray-900">
-                InnoLab CRM
+                InLab CRM
               </Link>
             </div>
             <div className="text-sm text-gray-600">
@@ -215,10 +219,36 @@ function NewHypothesisInner() {
                 </li>
               </ol>
             </nav>
-            <h1 className="mt-4 text-2xl font-bold text-gray-900">Создать новую гипотезу</h1>
+            <h1 className="mt-4 text-2xl font-bold text-gray-900">🔬 Создать новую гипотезу</h1>
             <p className="mt-2 text-gray-600">
-              Используйте шаблоны или создайте гипотезу с нуля в формате "Если X, то Y, потому что Z"
+              Превратите идею в проверяемое предположение для тестирования
             </p>
+          </div>
+
+          {/* Info Section */}
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 mb-6 border border-green-100">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">💡 Что такое хорошая гипотеза?</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-medium text-gray-900 mb-2">Формат гипотезы:</h3>
+                <div className="bg-white rounded-lg p-4 border">
+                  <p className="text-sm text-gray-700">
+                    <strong className="text-blue-600">Если</strong> мы сделаем [действие],<br/>
+                    <strong className="text-green-600">то</strong> произойдет [результат],<br/>
+                    <strong className="text-purple-600">потому что</strong> [обоснование]
+                  </p>
+                </div>
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900 mb-2">Критерии качества:</h3>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  <li>✅ Конкретная и измеримая</li>
+                  <li>✅ Основана на данных или наблюдениях</li>
+                  <li>✅ Может быть протестирована быстро</li>
+                  <li>✅ Имеет четкие критерии успеха</li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -269,6 +299,30 @@ function NewHypothesisInner() {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label htmlFor="level" className="block text-sm font-medium text-gray-700 mb-2">
+                  Уровень гипотезы *
+                </label>
+                <select
+                  id="level"
+                  name="level"
+                  required
+                  value={formData.level}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="LEVEL_1">L1 - Базовая формулировка</option>
+                  <option value="LEVEL_2">L2 - После desk research</option>
+                </select>
+                <div className="mt-2 text-sm text-gray-600">
+                  {formData.level === 'LEVEL_1' ? (
+                    <p>📝 Базовая гипотеза: формулировка «Если..., то..., потому что...»</p>
+                  ) : (
+                    <p>🔬 Детализированная гипотеза: после кабинетного исследования и дизайна эксперимента</p>
+                  )}
+                </div>
               </div>
 
               <div>

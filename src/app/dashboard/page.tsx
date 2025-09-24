@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import RecentActivity from "@/components/ui/RecentActivity"
@@ -18,43 +18,65 @@ export default function Dashboard() {
     successRate: 0
   })
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const [ideasRes, hypothesesRes, experimentsRes] = await Promise.all([
-          fetch('/api/ideas'),
-          fetch('/api/hypotheses'),
-          fetch('/api/experiments')
-        ])
+  const fetchStats = async () => {
+    try {
+      const [ideasRes, hypothesesRes, experimentsRes] = await Promise.all([
+        fetch('/api/ideas'),
+        fetch('/api/hypotheses'),
+        fetch('/api/experiments')
+      ])
 
-        const ideas = ideasRes.ok ? await ideasRes.json() : []
-        const hypotheses = hypothesesRes.ok ? await hypothesesRes.json() : []
-        const experiments = experimentsRes.ok ? await experimentsRes.json() : []
+      const ideas = ideasRes.ok ? await ideasRes.json() : []
+      const hypotheses = hypothesesRes.ok ? await hypothesesRes.json() : []
+      const experiments = experimentsRes.ok ? await experimentsRes.json() : []
 
-        const successfulExperiments = experiments.filter((exp: any) => exp.status === 'VALIDATED').length
-        const successRate = experiments.length > 0 ? Math.round((successfulExperiments / experiments.length) * 100) : 0
+      const successfulExperiments = experiments.filter((exp: any) => exp.status === 'VALIDATED').length
+      const successRate = experiments.length > 0 ? Math.round((successfulExperiments / experiments.length) * 100) : 0
 
-        setStats({
-          ideas: ideas.length,
-          hypotheses: hypotheses.length,
-          experiments: experiments.length,
-          successRate
-        })
-      } catch (error) {
-        console.error('Error fetching stats:', error)
-        setStats({
-          ideas: 0,
-          hypotheses: 0,
-          experiments: 0,
-          successRate: 0
-        })
-      }
+      setStats({
+        ideas: ideas.length,
+        hypotheses: hypotheses.length,
+        experiments: experiments.length,
+        successRate
+      })
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+      setStats({
+        ideas: 0,
+        hypotheses: 0,
+        experiments: 0,
+        successRate: 0
+      })
     }
+  }
 
+  useEffect(() => {
     if (status !== "loading") {
       fetchStats()
     }
   }, [status])
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && session) {
+        fetchStats()
+      }
+    }
+
+    const handleFocus = () => {
+      if (session) {
+        fetchStats()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [session])
 
   if (!session) {
     return null
@@ -70,12 +92,20 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-gray-900">InnoLab CRM</h1>
+              <h1 className="text-2xl font-bold text-gray-900">InLab CRM</h1>
               <div className="text-sm text-gray-600">
                 {session?.user?.name} | {getRoleDisplayName(session?.user?.role || '')}
               </div>
             </div>
             <div className="flex items-center space-x-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={fetchStats}
+                className="text-blue-600 hover:text-blue-700 border-blue-200 hover:border-blue-300"
+              >
+                🔄 Обновить
+              </Button>
               <ExportButton />
               {(session?.user?.role === 'ADMIN' || session?.user?.role === 'LAB_DIRECTOR') && (
                 <Link href="/admin">
@@ -84,6 +114,14 @@ export default function Dashboard() {
                   </Button>
                 </Link>
               )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+              >
+                Выйти
+              </Button>
               <Badge variant="secondary" className="text-xs">
                 v1.0.0
               </Badge>
@@ -96,9 +134,9 @@ export default function Dashboard() {
       <nav className="bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
-            <Link href="/dashboard" className="border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600 flex items-center space-x-2">
-              <span>📊</span>
-              <span>Дашборд</span>
+            <Link href="/kanban" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>🌊</span>
+              <span>Канбан</span>
             </Link>
             <Link href="/ideas" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
               <span>💡</span>
@@ -112,9 +150,13 @@ export default function Dashboard() {
               <span>⚗️</span>
               <span>Эксперименты</span>
             </Link>
-            <Link href="/analytics" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>📈</span>
-              <span>Аналитика</span>
+            <Link href="/knowledge" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
+              <span>📚</span>
+              <span>База знаний</span>
+            </Link>
+            <Link href="/dashboard" className="border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600 flex items-center space-x-2">
+              <span>📊</span>
+              <span>Статистика</span>
             </Link>
           </div>
         </div>
@@ -134,43 +176,89 @@ export default function Dashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-600 text-sm font-medium">Идеи</p>
-                <p className="text-3xl font-bold text-blue-900">{stats.ideas}</p>
+          <Link href="/ideas" className="block group">
+            <div className="bg-blue-50 rounded-xl p-6 border border-blue-100 hover:shadow-lg transition-all duration-200 group-hover:bg-blue-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-600 text-sm font-medium">Идеи</p>
+                  <p className="text-3xl font-bold text-blue-900">{stats.ideas}</p>
+                  <p className="text-xs text-blue-600 mt-1">Нажмите для просмотра</p>
+                </div>
+                <div className="text-3xl group-hover:scale-110 transition-transform duration-200">💡</div>
               </div>
-              <div className="text-3xl">💡</div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-green-50 rounded-xl p-6 border border-green-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-600 text-sm font-medium">Гипотезы</p>
-                <p className="text-3xl font-bold text-green-900">{stats.hypotheses}</p>
+          <Link href="/hypotheses" className="block group">
+            <div className="bg-green-50 rounded-xl p-6 border border-green-100 hover:shadow-lg transition-all duration-200 group-hover:bg-green-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-600 text-sm font-medium">Гипотезы</p>
+                  <p className="text-3xl font-bold text-green-900">{stats.hypotheses}</p>
+                  <p className="text-xs text-green-600 mt-1">Нажмите для просмотра</p>
+                </div>
+                <div className="text-3xl group-hover:scale-110 transition-transform duration-200">🔬</div>
               </div>
-              <div className="text-3xl">🔬</div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-purple-50 rounded-xl p-6 border border-purple-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-600 text-sm font-medium">Эксперименты</p>
-                <p className="text-3xl font-bold text-purple-900">{stats.experiments}</p>
+          <Link href="/experiments" className="block group">
+            <div className="bg-purple-50 rounded-xl p-6 border border-purple-100 hover:shadow-lg transition-all duration-200 group-hover:bg-purple-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-600 text-sm font-medium">Эксперименты</p>
+                  <p className="text-3xl font-bold text-purple-900">{stats.experiments}</p>
+                  <p className="text-xs text-purple-600 mt-1">Нажмите для просмотра</p>
+                </div>
+                <div className="text-3xl group-hover:scale-110 transition-transform duration-200">⚗️</div>
               </div>
-              <div className="text-3xl">⚗️</div>
             </div>
-          </div>
+          </Link>
 
           <div className="bg-orange-50 rounded-xl p-6 border border-orange-100">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-orange-600 text-sm font-medium">Успешность</p>
                 <p className="text-3xl font-bold text-orange-900">{stats.successRate}%</p>
+                <p className="text-xs text-orange-600 mt-1">Доля успешных экспериментов</p>
               </div>
               <div className="text-3xl">📈</div>
+            </div>
+          </div>
+        </div>
+
+        {/* How it Works Section */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 mb-8 border border-blue-100">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+            🚀 Как работает InLab
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">💡</span>
+              </div>
+              <h3 className="font-semibold text-lg mb-2">1. Создайте идею</h3>
+              <p className="text-gray-600 text-sm">
+                Опишите идею нового продукта или улучшения. Команда оценит ее по ICE-критериям
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🔬</span>
+              </div>
+              <h3 className="font-semibold text-lg mb-2">2. Сформулируйте гипотезу</h3>
+              <p className="text-gray-600 text-sm">
+                Превратите лучшие идеи в проверяемые гипотезы по формату "Если..., то..., потому что..."
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">⚗️</span>
+              </div>
+              <h3 className="font-semibold text-lg mb-2">3. Проведите эксперимент</h3>
+              <p className="text-gray-600 text-sm">
+                Протестируйте гипотезу быстро и дешево: лендинг, прототип, опросы или MVP
+              </p>
             </div>
           </div>
         </div>
@@ -189,7 +277,7 @@ export default function Dashboard() {
                     <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
                       Новая идея
                     </h3>
-                    <p className="text-gray-600 text-sm">Добавить идею для проработки</p>
+                    <p className="text-gray-600 text-sm">Добавить идею для проработки команды</p>
                   </div>
                 </div>
               </Link>
@@ -204,7 +292,7 @@ export default function Dashboard() {
                     <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
                       Новая гипотеза
                     </h3>
-                    <p className="text-gray-600 text-sm">Сформулировать гипотезу</p>
+                    <p className="text-gray-600 text-sm">Сформулировать проверяемое предположение</p>
                   </div>
                 </div>
               </Link>
@@ -219,7 +307,7 @@ export default function Dashboard() {
                     <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
                       Новый эксперимент
                     </h3>
-                    <p className="text-gray-600 text-sm">Запланировать эксперимент</p>
+                    <p className="text-gray-600 text-sm">Спланировать тест для проверки гипотезы</p>
                   </div>
                 </div>
               </Link>

@@ -84,7 +84,7 @@ export default function RoleBasedNavigation() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/dashboard" className="text-xl font-bold text-gray-900">
-              InnoLab CRM
+              InLab CRM
             </Link>
           </div>
 

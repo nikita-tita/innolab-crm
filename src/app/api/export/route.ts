@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
       return new NextResponse(csvContent, {
         headers: {
           "Content-Type": "text/csv",
-          "Content-Disposition": `attachment; filename="innolab-export-${type || "all"}-${new Date().toISOString().split('T')[0]}.csv"`
+          "Content-Disposition": `attachment; filename="inlab-export-${type || "all"}-${new Date().toISOString().split('T')[0]}.csv"`
         }
       })
     }
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
     return new NextResponse(jsonContent, {
       headers: {
         "Content-Type": "application/json",
-        "Content-Disposition": `attachment; filename="innolab-export-${type || "all"}-${new Date().toISOString().split('T')[0]}.json"`
+        "Content-Disposition": `attachment; filename="inlab-export-${type || "all"}-${new Date().toISOString().split('T')[0]}.json"`
       }
     })
   } catch (error) {

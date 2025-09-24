@@ -12,14 +12,23 @@ model User {
   id                String       @id @default(cuid())
   name              String?
   email             String       @unique
+  password          String?      // Хешированный пароль
   emailVerified     DateTime?
   image             String?
   role              UserRole     @default(VIEWER)
   status            UserStatus   @default(PENDING)     // Статус пользователя
   isActive          Boolean      @default(true)        // Активен ли пользователь
   lastLoginAt       DateTime?                          // Последний вход
+  deletedAt         DateTime?                          // Soft delete timestamp
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
+
+  @@index([email])
+  @@index([role, status])
+  @@index([createdAt])
+  @@index([lastLoginAt])
+  @@index([deletedAt], map: "idx_user_deleted")
+  // Relations
   accounts          Account[]
   activities        Activity[]
   comments          Comment[]
@@ -82,12 +91,25 @@ model Idea {
   effort      Int?         // Затраты (человеко-дни)
   riceScore   Float?       // Автовычисляемый RICE score
   context     String?      // Контекст возникновения идеи
+  deletedAt   DateTime?    // Soft delete timestamp
   createdBy   String
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+
+  // Relations
   comments    Comment[]
   hypotheses  Hypothesis[]
+  iceScores   ICEScore[]
   creator     User         @relation("IdeaCreator", fields: [createdBy], references: [id])
+
+  // Indexes for performance
+  @@index([status, priority])
+  @@index([createdBy])
+  @@index([createdAt])
+  @@index([riceScore], map: "idx_idea_rice_score")
+  @@index([category], map: "idx_idea_category")
+  @@index([status, priority, createdAt])
+  @@index([deletedAt], map: "idx_idea_deleted")
 }
 
 model Hypothesis {
@@ -155,23 +177,36 @@ model Hypothesis {
   finalPriority       Int?              // Итоговый приоритет после ICE-скоринга
   researchCompleted   Boolean           @default(false)
   experimentDesigned  Boolean           @default(false)
+  deletedAt           DateTime?         // Soft delete timestamp
 
   ideaId              String
   createdBy           String
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
 
-  // Связи
+  // Relations
   comments            Comment[]
   experiments         Experiment[]
   lessons             Lesson[]
   creator             User              @relation("HypothesisCreator", fields: [createdBy], references: [id])
   owner               User?             @relation("HypothesisOwner", fields: [ownerUserId], references: [id])
-  idea                Idea              @relation(fields: [ideaId], references: [id])
+  idea                Idea              @relation(fields: [ideaId], references: [id], onDelete: Cascade)
   successCriteria     SuccessCriteria[]
   artifacts           Artifact[]
   iceScores           ICEScore[]
   transitions         HypothesisTransition[]
+
+  // Indexes for performance
+  @@index([status, level])
+  @@index([ideaId])
+  @@index([createdBy])
+  @@index([ownerUserId], map: "idx_hypothesis_owner")
+  @@index([createdAt])
+  @@index([priority])
+  @@index([riceScore], map: "idx_hypothesis_rice_score")
+  @@index([status, level, priority])
+  @@index([deletedAt], map: "idx_hypothesis_deleted")
+  @@unique([ideaId, title], name: "unq_hypothesis_title_per_idea")
 }
 
 model Experiment {
@@ -188,16 +223,29 @@ model Experiment {
   timeline        String?
   resources       String?
   successMetrics  String?
+  deletedAt       DateTime?          // Soft delete timestamp
   hypothesisId    String
   createdBy       String
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
+
+  // Relations
   comments        Comment[]
   creator         User               @relation("ExperimentCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-  hypothesis      Hypothesis         @relation(fields: [hypothesisId], references: [id])
+  hypothesis      Hypothesis         @relation(fields: [hypothesisId], references: [id], onDelete: Cascade)
   results         ExperimentResult[]
   lessons         Lesson[]
   mvps            MVP[]
+
+  // Indexes for performance
+  @@index([status, type])
+  @@index([hypothesisId])
+  @@index([createdBy])
+  @@index([startDate, endDate])
+  @@index([actualStartDate, actualEndDate])
+  @@index([status, startDate, endDate])
+  @@index([deletedAt], map: "idx_experiment_deleted")
+  @@unique([hypothesisId, title], name: "unq_experiment_title_per_hypothesis")
 }
 
 model MVP {
@@ -212,14 +260,24 @@ model MVP {
   resources       String?
   timeline        String?
   successCriteria String?
+  deletedAt       DateTime?    // Soft delete timestamp
   createdBy       String
   experimentId    String
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
+
+  // Relations
   attachments     Attachment[]
   comments        Comment[]
   creator         User         @relation("MVPCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-  experiment      Experiment   @relation(fields: [experimentId], references: [id])
+  experiment      Experiment   @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+
+  // Indexes for performance
+  @@index([status, type])
+  @@index([experimentId])
+  @@index([createdBy])
+  @@index([deletedAt], map: "idx_mvp_deleted")
+  @@unique([experimentId, title], name: "unq_mvp_title_per_experiment")
 }
 
 model SuccessCriteria {
@@ -233,7 +291,13 @@ model SuccessCriteria {
   hypothesisId String
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
-  hypothesis   Hypothesis @relation(fields: [hypothesisId], references: [id])
+
+  // Relations
+  hypothesis   Hypothesis @relation(fields: [hypothesisId], references: [id], onDelete: Cascade)
+
+  // Indexes and constraints
+  @@index([hypothesisId])
+  @@unique([hypothesisId, name], name: "unq_success_criteria_name_per_hypothesis")
 }
 
 model ExperimentResult {
@@ -245,7 +309,12 @@ model ExperimentResult {
   experimentId String
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
-  experiment   Experiment @relation(fields: [experimentId], references: [id])
+
+  // Relations
+  experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@index([experimentId])
 }
 
 model Comment {
@@ -256,13 +325,24 @@ model Comment {
   hypothesisId String?
   experimentId String?
   mvpId        String?
+  deletedAt    DateTime?   // Soft delete timestamp
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
-  experiment   Experiment? @relation(fields: [experimentId], references: [id])
-  hypothesis   Hypothesis? @relation(fields: [hypothesisId], references: [id])
-  idea         Idea?       @relation(fields: [ideaId], references: [id])
-  mvp          MVP?        @relation(fields: [mvpId], references: [id])
+
+  // Relations with SET NULL on delete (preserve comment history)
+  experiment   Experiment? @relation(fields: [experimentId], references: [id], onDelete: SetNull)
+  hypothesis   Hypothesis? @relation(fields: [hypothesisId], references: [id], onDelete: SetNull)
+  idea         Idea?       @relation(fields: [ideaId], references: [id], onDelete: SetNull)
+  mvp          MVP?        @relation(fields: [mvpId], references: [id], onDelete: SetNull)
   user         User        @relation(fields: [userId], references: [id])
+
+  // Indexes for efficient comment queries
+  @@index([ideaId, createdAt], map: "idx_comment_idea_created")
+  @@index([hypothesisId, createdAt], map: "idx_comment_hypothesis_created")
+  @@index([experimentId, createdAt], map: "idx_comment_experiment_created")
+  @@index([mvpId, createdAt], map: "idx_comment_mvp_created")
+  @@index([userId])
+  @@index([deletedAt], map: "idx_comment_deleted")
 }
 
 model Attachment {
@@ -295,14 +375,23 @@ model ICEScore {
   impact       Int        // Влияние (1-10)
   confidence   Int        // Уверенность (1-10)
   ease         Int        // Простота реализации (1-10)
+  comment      String?    // Комментарий к оценке
   userId       String     // Кто оценивал
-  hypothesisId String
+  ideaId       String?    // Для оценки идей
+  hypothesisId String?    // Для оценки гипотез
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
-  user         User       @relation(fields: [userId], references: [id])
-  hypothesis   Hypothesis @relation(fields: [hypothesisId], references: [id])
 
+  // Relations
+  user         User       @relation(fields: [userId], references: [id])
+  idea         Idea?      @relation(fields: [ideaId], references: [id])
+  hypothesis   Hypothesis? @relation(fields: [hypothesisId], references: [id])
+
+  // Constraints and indexes
+  @@unique([userId, ideaId])
   @@unique([userId, hypothesisId])
+  @@index([ideaId, userId], map: "idx_ice_score_idea")
+  @@index([hypothesisId, userId], map: "idx_ice_score_hypothesis")
 }
 
 model LabInventory {
@@ -359,7 +448,14 @@ model Activity {
   userId       String
   metadata     Json?         // Additional data about the activity
   createdAt    DateTime      @default(now())
+
+  // Relations
   user         User          @relation(fields: [userId], references: [id])
+
+  // Indexes for audit trails
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+  @@index([type])
 }
 
 model HypothesisTemplate {

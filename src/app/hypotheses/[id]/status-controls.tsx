@@ -4,6 +4,7 @@ import { useState } from "react"
 
 const options = [
   { value: "DRAFT", label: "Черновик" },
+  { value: "RESEARCH", label: "Desk Research" },
   { value: "READY_FOR_TESTING", label: "Готова к тестированию" },
   { value: "IN_EXPERIMENT", label: "В эксперименте" },
   { value: "VALIDATED", label: "Подтверждена" },

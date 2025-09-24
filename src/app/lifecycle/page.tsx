@@ -140,7 +140,7 @@ export default function Lifecycle() {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <Link href="/dashboard" className="text-2xl font-bold text-white hover:text-blue-100 transition-colors">
-                InnoLab CRM
+                InLab CRM
               </Link>
               <span className="mx-3 text-blue-300">→</span>
               <h1 className="text-xl font-semibold text-white">Жизненный цикл инноваций</h1>

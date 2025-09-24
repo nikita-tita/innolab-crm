@@ -1,184 +1,214 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { withApiHandler, withDatabaseTransaction } from "@/lib/api-handler"
 import { prisma } from "@/lib/prisma"
+import { logger } from "@/lib/logger"
+import { ideaSchemas, filterSchemas } from "@/lib/schemas"
 import { logActivity, getActivityDescription } from "@/lib/activity"
+import { ideaRepository, QueryBuilder } from "@/lib/database"
+import { ideaWorkflow } from "@/lib/business-logic"
 
-export async function GET(request: NextRequest) {
-  try {
-    // Allow public access for demo purposes
-    // const session = await getServerSession(authOptions)
-    // if (!session) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    // }
-
+// GET /api/ideas - получение списка идей с фильтрацией
+export const GET = withApiHandler(
+  async (request: NextRequest, { session, requestId }) => {
     const { searchParams } = new URL(request.url)
-    const status = searchParams.get("status")
-    const priority = searchParams.get("priority")
-    const category = searchParams.get("category")
 
-    const where: Record<string, unknown> = {}
+    // Валидируем параметры запроса
+    const filters = filterSchemas.ideas.parse({
+      status: searchParams.get("status"),
+      priority: searchParams.get("priority"),
+      category: searchParams.get("category"),
+      search: searchParams.get("search"),
+      page: searchParams.get("page"),
+      limit: searchParams.get("limit")
+    })
 
-    if (status) where.status = status
-    if (priority) where.priority = priority
-    if (category) where.category = { contains: category, mode: 'insensitive' }
+    const include = searchParams.get("include")
 
-    const ideas = await prisma.idea.findMany({
-      where,
-      include: {
-        creator: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true
-          }
-        },
-        hypotheses: {
-          select: {
-            id: true,
-            title: true,
-            status: true
-          }
-        },
-        _count: {
-          select: {
-            hypotheses: true,
-            comments: true
-          }
-        }
-      },
-      orderBy: [
-        { priority: 'desc' },
-        { createdAt: 'desc' }
+    logger.debug('Fetching ideas with filters', {
+      filters,
+      include,
+      userId: session.user.id,
+      requestId
+    })
+
+    // Построение where условий
+    const where: any = {}
+    if (filters.status) where.status = filters.status
+    if (filters.priority) where.priority = filters.priority
+    if (filters.category) where.category = { contains: filters.category, mode: 'insensitive' }
+    if (filters.search) {
+      where.OR = [
+        { title: { contains: filters.search, mode: 'insensitive' } },
+        { description: { contains: filters.search, mode: 'insensitive' } },
+        { category: { contains: filters.search, mode: 'insensitive' } }
       ]
-    })
-
-    return NextResponse.json(ideas)
-  } catch (error) {
-    console.error("Error fetching ideas:", error)
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    )
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    // Allow demo access without authentication
-    const session = await getServerSession(authOptions)
-
-    const body = await request.json()
-    const { title, description, category, priority = "MEDIUM", context, reach, impact, confidence, effort } = body
-
-    if (!title || !description) {
-      return NextResponse.json(
-        { error: "Title and description are required" },
-        { status: 400 }
-      )
     }
 
-    // Create or get demo user
-    let userId = session?.user?.id || 'demo-user-id'
-
-    // First try to find existing demo user by email
-    let user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { id: userId },
-          { email: 'demo@innolab.com' }
-        ]
-      }
-    })
-
-    if (!user) {
-      try {
-        user = await prisma.user.create({
-          data: {
-            id: userId,
-            email: 'demo@innolab.com',
-            name: 'Demo User',
-            role: 'PRODUCT_MANAGER',
-          }
-        })
-      } catch (error: any) {
-        // If user already exists, find them
-        if (error.code === 'P2002') {
-          user = await prisma.user.findFirst({
-            where: { email: 'demo@innolab.com' }
-          })
-          if (!user) {
-            throw new Error('Could not create or find demo user')
-          }
-        } else {
-          throw error
+    // Базовые включения
+    const includeOptions: any = {
+      creator: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true
         }
-      }
-    }
-
-    userId = user.id
-
-    // Calculate RICE score if all values are provided
-    let riceScore = null
-    if (reach && impact && confidence && effort && reach > 0 && impact > 0 && confidence > 0 && effort > 0) {
-      riceScore = (reach * impact * confidence) / effort
-    }
-
-    const idea = await prisma.idea.create({
-      data: {
-        title: title.trim(),
-        description: description.trim(),
-        category: category?.trim() || null,
-        priority,
-        status: riceScore ? "SCORED" : "NEW",
-        context: context?.trim() || null,
-        reach: reach || null,
-        impact: impact || null,
-        confidence: confidence || null,
-        effort: effort || null,
-        riceScore,
-        createdBy: userId
       },
-      include: {
-        creator: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true
-          }
-        },
-        _count: {
-          select: {
-            hypotheses: true,
-            comments: true
-          }
+      _count: {
+        select: {
+          hypotheses: true,
+          comments: true
         }
-      }
-    })
-
-    // Log activity only if user is authenticated
-    if (session?.user?.id) {
-      try {
-        await logActivity({
-          type: "CREATED",
-          description: getActivityDescription("CREATED", "idea", idea.title, session.user.email || ""),
-          entityType: "idea",
-          entityId: idea.id,
-          userId: session.user.id
-        })
-      } catch (error) {
-        console.warn("Could not log activity:", error)
       }
     }
 
-    return NextResponse.json(idea, { status: 201 })
-  } catch (error) {
-    console.error("Error creating idea:", error)
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    )
+    // Дополнительные включения для workflow данных
+    if (include?.includes('hypotheses') || include?.includes('experiments')) {
+      includeOptions.hypotheses = {
+        select: {
+          id: true,
+          title: true,
+          statement: true,
+          status: true,
+          level: true,
+          createdAt: true,
+          experiments: include?.includes('experiments') ? {
+            select: {
+              id: true,
+              title: true,
+              status: true,
+              createdAt: true
+            }
+          } : false
+        }
+      }
+    } else {
+      includeOptions.hypotheses = {
+        select: {
+          id: true,
+          title: true,
+          status: true
+        }
+      }
+    }
+
+    // Use the new repository with soft delete support
+    const queryBuilder = new QueryBuilder(prisma.idea)
+
+    // Apply filters using the query builder
+    if (filters.status) queryBuilder.where({ status: filters.status })
+    if (filters.priority) queryBuilder.where({ priority: filters.priority })
+    if (filters.category) queryBuilder.where({ category: { contains: filters.category, mode: 'insensitive' } })
+    if (filters.search) {
+      queryBuilder.where({
+        OR: [
+          { title: { contains: filters.search, mode: 'insensitive' } },
+          { description: { contains: filters.search, mode: 'insensitive' } },
+          { category: { contains: filters.search, mode: 'insensitive' } }
+        ]
+      })
+    }
+
+    const [ideas, totalCount] = await Promise.all([
+      queryBuilder.findMany({
+        include: includeOptions,
+        orderBy: [
+          { priority: 'desc' },
+          { createdAt: 'desc' }
+        ],
+        skip: (filters.page - 1) * filters.limit,
+        take: filters.limit
+      }),
+      queryBuilder.count()
+    ])
+
+    logger.info('Ideas fetched successfully', {
+      count: ideas.length,
+      totalCount,
+      page: filters.page,
+      userId: session.user.id,
+      requestId
+    })
+
+    return NextResponse.json({
+      data: ideas,
+      pagination: {
+        page: filters.page,
+        limit: filters.limit,
+        total: totalCount,
+        pages: Math.ceil(totalCount / filters.limit)
+      }
+    })
+  },
+  {
+    requireAuth: true,
+    validateParams: filterSchemas.ideas
   }
-}
+)
+
+// POST /api/ideas - создание новой идеи с использованием бизнес-логики
+export const POST = withApiHandler(
+  async (request: NextRequest, { session, requestId }) => {
+    try {
+      const body = await request.json()
+
+      logger.debug('Creating new idea via workflow', {
+        title: body.title,
+        userId: session.user.id,
+        requestId
+      })
+
+      // Use the business logic workflow service
+      const idea = await ideaWorkflow.submitIdea({
+        title: body.title,
+        description: body.description,
+        category: body.category,
+        context: body.context,
+        priority: body.priority,
+        userId: session.user.id
+      })
+
+      // If RICE scores are provided, apply them immediately
+      if (body.reach && body.impact && body.confidence && body.effort) {
+        const scoredIdea = await ideaWorkflow.scoreIdea(
+          idea.id,
+          {
+            reach: body.reach,
+            impact: body.impact,
+            confidence: body.confidence,
+            effort: body.effort
+          },
+          session.user.id
+        )
+
+        logger.info('Idea created and scored in single request', {
+          ideaId: idea.id,
+          riceScore: scoredIdea.riceScore,
+          userId: session.user.id,
+          requestId
+        })
+
+        return NextResponse.json(scoredIdea, { status: 201 })
+      }
+
+      logger.info('Idea created successfully via workflow', {
+        ideaId: idea.id,
+        title: idea.title,
+        userId: session.user.id,
+        requestId
+      })
+
+      return NextResponse.json(idea, { status: 201 })
+    } catch (error) {
+      logger.error('Failed to create idea via workflow', error, {
+        userId: session.user.id,
+        requestId
+      })
+      throw error
+    }
+  },
+  {
+    requireAuth: true,
+    validateBody: ideaSchemas.create
+  }
+)

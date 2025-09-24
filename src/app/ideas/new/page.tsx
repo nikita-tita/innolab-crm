@@ -12,18 +12,13 @@ export default function NewIdea() {
     title: "",
     description: "",
     category: "",
-    priority: "MEDIUM",
-    context: "",
-    reach: 0,
-    impact: 1,
-    confidence: 50,
-    effort: 1
+    context: ""
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/auth/signin")
+      router.push("/auth/login")
     }
   }, [status, router])
 
@@ -55,28 +50,14 @@ export default function NewIdea() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    const processedValue = ['reach', 'impact', 'confidence', 'effort'].includes(name) ?
-      parseInt(value) || 0 : value
     setFormData(prev => ({
       ...prev,
-      [name]: processedValue
+      [name]: value
     }))
   }
 
-  const calculateRiceScore = () => {
-    const { reach, impact, confidence, effort } = formData
-    if (reach > 0 && impact > 0 && confidence > 0 && effort > 0) {
-      return Math.round((reach * impact * confidence) / effort)
-    }
-    return 0
-  }
-
   if (status === "loading") {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-lg">Загрузка...</div>
-      </div>
-    )
+    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
   }
 
   if (!session) {
@@ -91,7 +72,7 @@ export default function NewIdea() {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <Link href="/dashboard" className="text-2xl font-bold text-gray-900">
-                InnoLab CRM
+                InLab CRM
               </Link>
             </div>
             <div className="text-sm text-gray-600">
@@ -116,9 +97,6 @@ export default function NewIdea() {
             </Link>
             <Link href="/experiments" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
               Эксперименты
-            </Link>
-            <Link href="/knowledge" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
-              База знаний
             </Link>
           </div>
         </div>
@@ -145,7 +123,7 @@ export default function NewIdea() {
             </nav>
             <h1 className="mt-4 text-2xl font-bold text-gray-900">Создать новую идею</h1>
             <p className="mt-2 text-gray-600">
-              Опишите вашу инновационную идею. Она может стать основой для будущих гипотез и экспериментов.
+              Опишите вашу инновационную идею. После создания команда сможет оценить ее по методологии ICE.
             </p>
           </div>
 
@@ -163,7 +141,7 @@ export default function NewIdea() {
                   value={formData.title}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Краткое и понятное название идеи"
+                  placeholder="Краткое и понятное название"
                 />
               </div>
 
@@ -179,192 +157,92 @@ export default function NewIdea() {
                   value={formData.description}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Подробно опишите идею: какую проблему она решает, каково предлагаемое решение, какая ожидается ценность..."
+                  placeholder="Подробно опишите вашу идею: что именно предлагается сделать, какую проблему это решает, кто будет пользоваться..."
                 />
-                <p className="mt-1 text-sm text-gray-500">
-                  Хорошее описание включает: проблему, решение, целевую аудиторию и ожидаемые результаты
-                </p>
+              </div>
+
+              <div>
+                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+                  Категория
+                </label>
+                <select
+                  id="category"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Выберите категорию</option>
+                  <option value="UX_UI">UX/UI</option>
+                  <option value="ANALYTICS">Аналитика</option>
+                  <option value="AUTOMATION">Автоматизация</option>
+                  <option value="PRODUCT">Продукт</option>
+                  <option value="MARKETING">Маркетинг</option>
+                  <option value="SALES">Продажи</option>
+                  <option value="OPERATIONS">Операции</option>
+                  <option value="OTHER">Другое</option>
+                </select>
               </div>
 
               <div>
                 <label htmlFor="context" className="block text-sm font-medium text-gray-700 mb-2">
-                  Контекст возникновения идеи
+                  Контекст и обоснование
                 </label>
                 <textarea
                   id="context"
                   name="context"
-                  rows={3}
+                  rows={4}
                   value={formData.context}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Какие обстоятельства привели к появлению этой идеи? Какие данные или наблюдения послужили основанием?"
+                  placeholder="Что привело к появлению этой идеи? Какие данные или наблюдения ее подтверждают?"
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-                    Категория
-                  </label>
-                  <input
-                    type="text"
-                    id="category"
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Например: UX/UI, Аналитика, Автоматизация"
-                  />
+              {/* Информационный блок с процессом */}
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="text-sm font-medium text-blue-900 mb-2">💡 Что происходит с идеей дальше?</h3>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li><strong>1. Командная оценка:</strong> Каждый участник команды оценит идею по ICE-критериям</li>
+                    <li><strong>2. Приоритизация:</strong> Система автоматически рассчитает средний балл</li>
+                    <li><strong>3. Проработка:</strong> Лучшие идеи превращаются в проверяемые гипотезы</li>
+                    <li><strong>4. Тестирование:</strong> Гипотезы проверяются быстрыми экспериментами</li>
+                  </ul>
                 </div>
 
-                <div>
-                  <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
-                    Приоритет
-                  </label>
-                  <select
-                    id="priority"
-                    name="priority"
-                    value={formData.priority}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="LOW">Низкий</option>
-                    <option value="MEDIUM">Средний</option>
-                    <option value="HIGH">Высокий</option>
-                    <option value="CRITICAL">Критический</option>
-                  </select>
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <h3 className="text-sm font-medium text-amber-900 mb-2">💭 Что такое ICE-оценка?</h3>
+                  <div className="text-sm text-amber-800 space-y-1">
+                    <p><strong>Impact (Влияние):</strong> Насколько сильно идея повлияет на ключевые метрики?</p>
+                    <p><strong>Confidence (Уверенность):</strong> Насколько команда уверена в успехе идеи?</p>
+                    <p><strong>Ease (Простота):</strong> Насколько легко реализовать идею?</p>
+                    <p className="text-xs pt-1">Каждый критерий оценивается от 1 до 10 баллов</p>
+                  </div>
+                </div>
+
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <h3 className="text-sm font-medium text-green-900 mb-2">✅ Советы для хорошей идеи:</h3>
+                  <ul className="text-sm text-green-800 space-y-1">
+                    <li>• Четко опишите проблему, которую решает идея</li>
+                    <li>• Укажите целевую аудиторию или сегмент пользователей</li>
+                    <li>• Добавьте контекст: откуда взялась эта идея?</li>
+                    <li>• Будьте конкретны, избегайте общих формулировок</li>
+                  </ul>
                 </div>
               </div>
 
-              {/* RICE Scoring Section */}
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">RICE-приоритизация</h3>
-                <p className="text-sm text-gray-600 mb-6">
-                  Оцените идею по методологии RICE для определения приоритета
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div>
-                    <label htmlFor="reach" className="block text-sm font-medium text-gray-700 mb-2">
-                      Охват (Reach)
-                    </label>
-                    <input
-                      type="number"
-                      id="reach"
-                      name="reach"
-                      min="0"
-                      value={formData.reach}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="1000"
-                    />
-                    <p className="mt-1 text-xs text-gray-500">Количество людей/событий в месяц</p>
-                  </div>
-
-                  <div>
-                    <label htmlFor="impact" className="block text-sm font-medium text-gray-700 mb-2">
-                      Влияние (Impact)
-                    </label>
-                    <select
-                      id="impact"
-                      name="impact"
-                      value={formData.impact}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value={1}>1 - Минимальное</option>
-                      <option value={2}>2 - Низкое</option>
-                      <option value={3}>3 - Среднее</option>
-                      <option value={4}>4 - Высокое</option>
-                      <option value={5}>5 - Максимальное</option>
-                    </select>
-                    <p className="mt-1 text-xs text-gray-500">Сила воздействия на пользователя</p>
-                  </div>
-
-                  <div>
-                    <label htmlFor="confidence" className="block text-sm font-medium text-gray-700 mb-2">
-                      Уверенность (Confidence)
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="range"
-                        id="confidence"
-                        name="confidence"
-                        min="10"
-                        max="100"
-                        step="10"
-                        value={formData.confidence}
-                        onChange={handleChange}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                      />
-                      <div className="text-center mt-1">
-                        <span className="text-sm font-medium text-gray-700">{formData.confidence}%</span>
-                      </div>
-                    </div>
-                    <p className="mt-1 text-xs text-gray-500">Уверенность в оценках</p>
-                  </div>
-
-                  <div>
-                    <label htmlFor="effort" className="block text-sm font-medium text-gray-700 mb-2">
-                      Затраты (Effort)
-                    </label>
-                    <input
-                      type="number"
-                      id="effort"
-                      name="effort"
-                      min="1"
-                      value={formData.effort}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="5"
-                    />
-                    <p className="mt-1 text-xs text-gray-500">Человеко-дни для реализации</p>
-                  </div>
-                </div>
-
-                {/* RICE Score Display */}
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-sm font-medium text-blue-900">RICE Score</h4>
-                      <p className="text-xs text-blue-700">({formData.reach} × {formData.impact} × {formData.confidence}%) ÷ {formData.effort}</p>
-                    </div>
-                    <div className="text-2xl font-bold text-blue-900">
-                      {calculateRiceScore()}
-                    </div>
-                  </div>
-                  {calculateRiceScore() > 0 && (
-                    <div className="mt-2 text-xs text-blue-700">
-                      {calculateRiceScore() >= 100 && "🟢 Высокий приоритет"}
-                      {calculateRiceScore() >= 50 && calculateRiceScore() < 100 && "🟡 Средний приоритет"}
-                      {calculateRiceScore() < 50 && "🔴 Низкий приоритет"}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Help Section */}
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                <h3 className="text-sm font-medium text-blue-900 mb-2">💡 Советы по формулированию идеи:</h3>
-                <ul className="text-sm text-blue-700 space-y-1">
-                  <li>• Четко определите проблему, которую решает ваша идея</li>
-                  <li>• Опишите целевую аудиторию и ее потребности</li>
-                  <li>• Укажите ожидаемые результаты и метрики успеха</li>
-                  <li>• Рассмотрите возможные риски и ограничения</li>
-                </ul>
-              </div>
-
-              <div className="flex justify-end space-x-4 pt-6 border-t">
+              <div className="flex justify-end space-x-4">
                 <Link
                   href="/ideas"
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   Отмена
                 </Link>
                 <button
                   type="submit"
-                  disabled={isSubmitting || !formData.title.trim() || !formData.description.trim()}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                 >
                   {isSubmitting ? "Создание..." : "Создать идею"}
                 </button>

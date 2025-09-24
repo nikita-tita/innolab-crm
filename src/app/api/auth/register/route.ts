@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         email,
+        password: hashedPassword, // ✅ Сохраняем хешированный пароль
         role,
         status: "ACTIVE", // Команда активируется сразу
         isActive: true

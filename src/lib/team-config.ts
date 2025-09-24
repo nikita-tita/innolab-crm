@@ -3,7 +3,7 @@ export const TEAM_MEMBERS = [
   {
     id: 'admin-main',
     name: 'Главный Администратор',
-    email: 'admin@innolab.com',
+    email: 'admin@inlab.com',
     role: 'ADMIN',
     password: 'admin2024', // В реальной системе должно быть захешировано
     avatar: '/avatars/admin.jpg',

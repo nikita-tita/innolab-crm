@@ -1,133 +1,143 @@
-import Link from "next/link";
+"use client"
+
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
+import { signIn } from "next-auth/react"
+import { useState } from "react"
 
 export default function Home() {
-  return (
-    <div className="min-h-screen bg-white">
-      {/* Notion-style header */}
-      <div className="border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gray-900 rounded flex items-center justify-center">
-                <span className="text-white text-sm font-bold">IL</span>
-              </div>
-              <span className="font-medium text-gray-900">InnoLab</span>
-            </div>
-            <Link
-              href="/auth/signin"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-            >
-              Войти
-            </Link>
-          </div>
-        </div>
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  useEffect(() => {
+    if (session) {
+      router.push("/kanban")
+    }
+  }, [session, router])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError("")
+
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        setError("Неверный email или пароль")
+      } else if (result?.ok) {
+        router.push("/kanban")
+      }
+    } catch (error) {
+      setError("Произошла ошибка при входе")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-lg">Загрузка...</div>
       </div>
+    )
+  }
 
-      {/* Hero section */}
-      <div className="max-w-4xl mx-auto px-6 py-16">
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            Превращайте идеи<br />в успешные продукты
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Простая система для тестирования идей новых продуктов.
-            Проверяйте гипотезы быстро и дёшево, прежде чем вкладывать большие ресурсы.
-          </p>
-          <Link
-            href="/auth/signin"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-          >
-            Начать бесплатно →
-          </Link>
-        </div>
+  if (session) {
+    return null
+  }
 
-        {/* Quick overview */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">💡</span>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Собирайте идеи</h3>
-            <p className="text-gray-600 text-sm">Фиксируйте все идеи команды в одном месте</p>
-          </div>
-
-          <div className="text-center">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">🧪</span>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Тестируйте быстро</h3>
-            <p className="text-gray-600 text-sm">Проверяйте гипотезы за дни, а не месяцы</p>
-          </div>
-
-          <div className="text-center">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">📈</span>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Принимайте решения</h3>
-            <p className="text-gray-600 text-sm">Основывайтесь на данных, а не на мнениях</p>
-          </div>
-        </div>
-
-        {/* Simple process */}
-        <div className="bg-gray-50 rounded-2xl p-8 mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
-            Как это работает
-          </h2>
-
-          <div className="space-y-6">
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                1
-              </div>
-              <div>
-                <h3 className="font-medium text-gray-900 mb-1">Добавьте идею</h3>
-                <p className="text-gray-600 text-sm">Опишите идею нового продукта в свободной форме</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                2
-              </div>
-              <div>
-                <h3 className="font-medium text-gray-900 mb-1">Сформулируйте гипотезу</h3>
-                <p className="text-gray-600 text-sm">Превратите идею в проверяемое предположение</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                3
-              </div>
-              <div>
-                <h3 className="font-medium text-gray-900 mb-1">Выберите эксперимент</h3>
-                <p className="text-gray-600 text-sm">Лендинг, прототип, опросы или MVP — выберите подходящий тест</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                4
-              </div>
-              <div>
-                <h3 className="font-medium text-gray-900 mb-1">Получите результат</h3>
-                <p className="text-gray-600 text-sm">Проанализируйте данные и примите решение о дальнейших шагах</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* CTA */}
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        {/* Header */}
         <div className="text-center">
-          <Link
-            href="/auth/signin"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
-          >
-            Попробовать сейчас
-          </Link>
-          <p className="text-gray-500 text-sm mt-4">Бесплатно • Демо-доступ • Начните за 2 минуты</p>
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white text-xl font-bold">IL</span>
+            </div>
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900">InLab CRM</h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Войдите в систему для управления инновационными проектами
+          </p>
         </div>
+
+        {/* Form */}
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email адрес
+            </label>
+            <div className="mt-1">
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder="admin@inlab.com"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Пароль
+            </label>
+            <div className="mt-1">
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder="admin2024"
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
+              {error}
+            </div>
+          )}
+
+          <div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? "Вход..." : "Войти"}
+            </button>
+          </div>
+
+          {/* Demo credentials */}
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+            <h3 className="text-sm font-medium text-blue-900 mb-2">Демо-доступ:</h3>
+            <div className="text-sm text-blue-800 space-y-1">
+              <p><strong>Email:</strong> admin@inlab.com</p>
+              <p><strong>Пароль:</strong> admin2024</p>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
-  );
+  )
 }

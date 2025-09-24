@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import type { IdeaStatus } from "@prisma/client"
+import { checkPermission, PermissionError } from "@/lib/permissions-server"
 
 export async function PATCH(
   request: NextRequest,
@@ -23,6 +24,32 @@ export async function PATCH(
         { error: "Status is required" },
         { status: 400 }
       )
+    }
+
+    // Check if idea exists and user has permission to edit
+    const existingIdea = await prisma.idea.findUnique({
+      where: { id },
+      select: { createdBy: true }
+    })
+
+    if (!existingIdea) {
+      return NextResponse.json({ error: "Idea not found" }, { status: 404 })
+    }
+
+    try {
+      checkPermission(
+        { id: session.user.id, role: session.user.role as string },
+        'edit',
+        { createdBy: existingIdea.createdBy }
+      )
+    } catch (error) {
+      if (error instanceof PermissionError) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: error.statusCode }
+        )
+      }
+      throw error
     }
 
     const updated = await prisma.idea.update({

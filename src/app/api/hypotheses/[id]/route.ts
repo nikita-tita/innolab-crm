@@ -17,6 +17,7 @@ export async function GET(
         creator: { select: { id: true, name: true, email: true, role: true } },
         idea: { select: { id: true, title: true } },
         experiments: { select: { id: true, title: true, status: true } },
+        successCriteria: { orderBy: { createdAt: 'asc' } },
         _count: { select: { experiments: true, comments: true } },
       },
     })
