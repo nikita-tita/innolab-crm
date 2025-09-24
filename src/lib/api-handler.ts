@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
-import { authConfig } from "@/lib/auth"
+import { authOptions } from "@/lib/auth"
 import { logger } from "@/lib/logger"
 import { z } from "zod"
 
@@ -92,7 +92,7 @@ export function withApiHandler(
       // Аутентификация
       let session = null
       if (options.requireAuth !== false) {
-        session = await getServerSession(authConfig)
+        session = await getServerSession(authOptions)
 
         if (!session?.user?.id) {
           logger.securityLog('Unauthorized API access attempt', undefined,
