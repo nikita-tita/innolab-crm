@@ -276,7 +276,7 @@ export default function KanbanPage() {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                🌊 Канбан-доска InLab CRM
+                🌊 InLab CRM
               </h1>
               <div className="text-sm text-gray-600">
                 {session?.user?.name} | {getRoleDisplayName(session?.user?.role || '')}
@@ -332,7 +332,7 @@ export default function KanbanPage() {
             </Link>
             <Link href="/dashboard" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
               <span>📊</span>
-              <span>Дашборд</span>
+              <span>Статистика</span>
             </Link>
           </div>
         </div>

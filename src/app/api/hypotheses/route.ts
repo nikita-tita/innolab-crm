@@ -15,7 +15,9 @@ export async function GET(request: NextRequest) {
     const priority = searchParams.get("priority")
     const ideaId = searchParams.get("ideaId")
 
-    const where: Record<string, string> = {}
+    const where: any = {
+      deletedAt: null  // Only show non-deleted hypotheses
+    }
 
     if (status) where.status = status
     if (priority) where.priority = priority

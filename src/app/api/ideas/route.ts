@@ -92,25 +92,25 @@ export const GET = withApiHandler(
       }
     }
 
-    // Use the new repository with soft delete support
-    const queryBuilder = new QueryBuilder(prisma.idea)
+    // Build where conditions
+    const whereConditions: any = {
+      deletedAt: null  // Only show non-deleted ideas
+    }
 
-    // Apply filters using the query builder
-    if (filters.status) queryBuilder.where({ status: filters.status })
-    if (filters.priority) queryBuilder.where({ priority: filters.priority })
-    if (filters.category) queryBuilder.where({ category: { contains: filters.category, mode: 'insensitive' } })
+    if (filters.status) whereConditions.status = filters.status
+    if (filters.priority) whereConditions.priority = filters.priority
+    if (filters.category) whereConditions.category = { contains: filters.category, mode: 'insensitive' }
     if (filters.search) {
-      queryBuilder.where({
-        OR: [
-          { title: { contains: filters.search, mode: 'insensitive' } },
-          { description: { contains: filters.search, mode: 'insensitive' } },
-          { category: { contains: filters.search, mode: 'insensitive' } }
-        ]
-      })
+      whereConditions.OR = [
+        { title: { contains: filters.search, mode: 'insensitive' } },
+        { description: { contains: filters.search, mode: 'insensitive' } },
+        { category: { contains: filters.search, mode: 'insensitive' } }
+      ]
     }
 
     const [ideas, totalCount] = await Promise.all([
-      queryBuilder.findMany({
+      prisma.idea.findMany({
+        where: whereConditions,
         include: includeOptions,
         orderBy: [
           { priority: 'desc' },
@@ -119,7 +119,7 @@ export const GET = withApiHandler(
         skip: (filters.page - 1) * filters.limit,
         take: filters.limit
       }),
-      queryBuilder.count()
+      prisma.idea.count({ where: whereConditions })
     ])
 
     logger.info('Ideas fetched successfully', {

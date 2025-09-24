@@ -14,7 +14,9 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status")
     const hypothesisId = searchParams.get("hypothesisId")
 
-    const where: Record<string, string> = {}
+    const where: any = {
+      deletedAt: null  // Only show non-deleted experiments
+    }
 
     if (status) where.status = status
     if (hypothesisId) where.hypothesisId = hypothesisId
