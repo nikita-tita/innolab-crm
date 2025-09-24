@@ -85,13 +85,7 @@ export default function KanbanPage() {
         const response = await fetch('/api/ideas?include=hypotheses,experiments')
         if (response.ok) {
           const data = await response.json()
-          const ideas = data.data || data
-          console.log('Loaded ideas for kanban:', ideas)
-          console.log('Ideas count:', ideas.length)
-          ideas.forEach(idea => {
-            console.log(`Idea: ${idea.title}, hypotheses: ${idea.hypotheses?.length || 0}`)
-          })
-          setIdeas(ideas)
+          setIdeas(data.data || data)
         } else if (response.status === 401) {
           router.push("/")
           return
