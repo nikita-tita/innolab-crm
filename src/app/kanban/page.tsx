@@ -1,12 +1,12 @@
 "use client"
 
-import { useSession, signOut } from "next-auth/react"
+import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
-import { canCreate, isViewer, getRoleDisplayName } from "@/lib/permissions"
+import { isViewer } from "@/lib/permissions"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import AppLayout from "@/components/layout/AppLayout"
 
 interface Idea {
   id: string
@@ -269,76 +269,7 @@ export default function KanbanPage() {
   const isReadOnlyUser = isViewer(userRole)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200">
-        <div className="max-w-full mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                🌊 InLab CRM
-              </h1>
-              <div className="text-sm text-gray-600">
-                {session?.user?.name} | {getRoleDisplayName(session?.user?.role || '')}
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              {(session?.user?.role === 'ADMIN' || session?.user?.role === 'LAB_DIRECTOR') && (
-                <Link href="/admin">
-                  <Button variant="outline" size="sm">
-                    Админка
-                  </Button>
-                </Link>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => signOut({ callbackUrl: "/" })}
-                className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
-              >
-                Выйти
-              </Button>
-              <Badge variant="secondary" className="text-xs">
-                v1.0.0
-              </Badge>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="bg-white/60 backdrop-blur-sm border-b border-gray-100">
-        <div className="max-w-full mx-auto px-6">
-          <div className="flex space-x-8">
-            <Link href="/kanban" className="border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600 flex items-center space-x-2">
-              <span>🌊</span>
-              <span>Канбан</span>
-            </Link>
-            <Link href="/ideas" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>💡</span>
-              <span>Идеи</span>
-            </Link>
-            <Link href="/hypotheses" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>🔬</span>
-              <span>Гипотезы</span>
-            </Link>
-            <Link href="/experiments" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>⚗️</span>
-              <span>Эксперименты</span>
-            </Link>
-            <Link href="/knowledge" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>📚</span>
-              <span>База знаний</span>
-            </Link>
-            <Link href="/dashboard" className="py-4 px-1 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center space-x-2">
-              <span>📊</span>
-              <span>Статистика</span>
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
+    <AppLayout>
       <div className="p-6">
         {isReadOnlyUser && (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 max-w-7xl mx-auto">
@@ -564,17 +495,11 @@ export default function KanbanPage() {
           </div>
         )}
 
-        {/* Помощь по использованию */}
-        <div className="mt-8 bg-blue-50/50 backdrop-blur-sm rounded-lg p-4 max-w-4xl mx-auto">
-          <h3 className="font-medium text-blue-900 mb-2">💡 Как использовать канбан-доску</h3>
-          <div className="text-blue-800 text-sm space-y-1">
-            <p>• Каждая строка показывает путь одной идеи через все этапы инновационного процесса</p>
-            <p>• Перетаскивайте карточки между колонками для изменения статуса (скоро)</p>
-            <p>• Нажимайте на карточки для перехода к детальной информации</p>
-            <p>• Используйте кнопки "+" для создания новых элементов на нужном этапе</p>
-          </div>
+        {/* Help Hint */}
+        <div className="mt-8 text-center text-gray-500 text-sm">
+          Нужна помощь? Нажмите кнопку <strong>?</strong> в правом верхнем углу для подробной справки
         </div>
       </div>
-    </div>
+    </AppLayout>
   )
 }
