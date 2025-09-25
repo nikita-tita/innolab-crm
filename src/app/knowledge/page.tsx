@@ -21,6 +21,7 @@ import Link from "next/link"
 import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
+import AppLayout from "@/components/layout/AppLayout"
 
 export default function KnowledgePage() {
   const { data: session, status } = useSession()

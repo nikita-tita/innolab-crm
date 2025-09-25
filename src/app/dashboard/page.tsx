@@ -8,6 +8,7 @@ import ExportButton from "@/components/ui/ExportButton"
 import { canCreate, isViewer, getRoleDisplayName } from "@/lib/permissions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import AppLayout from "@/components/layout/AppLayout"
 
 export default function Dashboard() {
   const { data: session, status } = useSession()
