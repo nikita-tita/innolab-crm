@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { isViewer } from "@/lib/permissions"
+import { isViewer, canCreate } from "@/lib/permissions"
 import { Badge } from "@/components/ui/badge"
 import AppLayout from "@/components/layout/AppLayout"
 
