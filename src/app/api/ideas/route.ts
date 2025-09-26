@@ -18,8 +18,8 @@ export const GET = withApiHandler(
       priority: searchParams.get("priority"),
       category: searchParams.get("category"),
       search: searchParams.get("search"),
-      page: searchParams.get("page"),
-      limit: searchParams.get("limit")
+      page: searchParams.get("page") || "1",
+      limit: searchParams.get("limit") || "20"
     })
 
     const include = searchParams.get("include")
