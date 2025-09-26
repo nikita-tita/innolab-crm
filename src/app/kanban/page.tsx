@@ -82,18 +82,26 @@ export default function KanbanPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log('🔄 Fetching kanban data...')
         const response = await fetch('/api/ideas?include=hypotheses,experiments')
+        console.log('📡 API response status:', response.status)
+
         if (response.ok) {
           const data = await response.json()
+          console.log('📊 API response data:', data)
+          console.log('💡 Ideas count:', data.data?.length || data.length || 0)
           setIdeas(data.data || data)
         } else if (response.status === 401) {
+          console.log('🔒 Unauthorized, redirecting to login')
           router.push("/")
           return
         } else {
-          console.error('Error fetching ideas:', response.status)
+          console.error('❌ Error fetching ideas:', response.status)
+          const errorText = await response.text()
+          console.error('❌ Error details:', errorText)
         }
       } catch (error) {
-        console.error('Error fetching workflow data:', error)
+        console.error('💥 Error fetching workflow data:', error)
       } finally {
         setLoading(false)
       }
