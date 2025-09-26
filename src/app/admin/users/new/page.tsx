@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+// Simplified select implementation
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Save, UserPlus } from "lucide-react"
 import Link from "next/link"
@@ -192,21 +192,18 @@ export default function NewUserPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="role">Роль</Label>
-                    <Select
+                    <select
+                      id="role"
+                      className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                       value={formData.role}
-                      onValueChange={(value) => handleInputChange("role", value)}
+                      onChange={(e) => handleInputChange("role", e.target.value)}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Выберите роль" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ROLES.map((role) => (
-                          <SelectItem key={role.value} value={role.value}>
-                            {role.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      {ROLES.map((role) => (
+                        <option key={role.value} value={role.value}>
+                          {role.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="space-y-2">
