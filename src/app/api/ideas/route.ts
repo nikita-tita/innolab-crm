@@ -141,8 +141,7 @@ export const GET = withApiHandler(
     })
   },
   {
-    requireAuth: true,
-    validateParams: filterSchemas.ideas
+    requireAuth: true
   }
 )
 
