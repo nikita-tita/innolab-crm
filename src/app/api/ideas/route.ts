@@ -12,15 +12,15 @@ export const GET = withApiHandler(
   async (request: NextRequest, { session, requestId }) => {
     const { searchParams } = new URL(request.url)
 
-    // Валидируем параметры запроса
-    const filters = filterSchemas.ideas.parse({
+    // Получаем параметры запроса (временно без валидации)
+    const filters = {
       status: searchParams.get("status"),
       priority: searchParams.get("priority"),
       category: searchParams.get("category"),
       search: searchParams.get("search"),
-      page: searchParams.get("page") || "1",
-      limit: searchParams.get("limit") || "20"
-    })
+      page: parseInt(searchParams.get("page") || "1"),
+      limit: parseInt(searchParams.get("limit") || "20")
+    }
 
     const include = searchParams.get("include")
 
