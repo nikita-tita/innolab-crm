@@ -43,15 +43,22 @@ export default function Ideas() {
   useEffect(() => {
     const fetchIdeas = async () => {
       try {
+        console.log('🔄 Fetching ideas...')
         const response = await fetch('/api/ideas')
+        console.log('📡 Ideas API response status:', response.status)
+
         if (response.ok) {
           const data = await response.json()
-          setIdeas(data)
+          console.log('📊 Ideas API response data:', data)
+          console.log('💡 Ideas count:', data.data?.length || data.length || 0)
+          setIdeas(data.data || data)
         } else {
-          console.error('Failed to fetch ideas')
+          console.error('❌ Failed to fetch ideas:', response.status)
+          const errorText = await response.text()
+          console.error('❌ Error details:', errorText)
         }
       } catch (error) {
-        console.error('Error fetching ideas:', error)
+        console.error('💥 Error fetching ideas:', error)
       } finally {
         setLoading(false)
       }
