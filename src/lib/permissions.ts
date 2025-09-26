@@ -1,13 +1,13 @@
 import { UserRole } from "@prisma/client"
 
 export const teamRoles: UserRole[] = [
+  "LAB_DIRECTOR",
   "PRODUCT_MANAGER",
-  "DESIGNER",
+  "UX_RESEARCHER",
   "MARKETER",
-  "ANALYST",
-  "MIDDLE_OFFICE",
-  "EXECUTIVE",
-  "TEAM_MEMBER"
+  "SALES_EXPERT",
+  "OPERATIONS_EXPERT",
+  "HYPOTHESIS_OWNER"
 ]
 
 export const viewerRoles: UserRole[] = [
@@ -59,15 +59,15 @@ export function canManageUsers(role: UserRole): boolean {
 
 export function getRoleDisplayName(role: UserRole): string {
   const roleNames: Record<UserRole, string> = {
-    PRODUCT_MANAGER: "Product Manager",
-    DESIGNER: "Дизайнер",
+    LAB_DIRECTOR: "Директор лаборатории",
+    PRODUCT_MANAGER: "Продакт-менеджер",
+    UX_RESEARCHER: "UX-исследователь",
     MARKETER: "Маркетолог",
-    ANALYST: "Аналитик",
-    MIDDLE_OFFICE: "Middle Office",
-    EXECUTIVE: "Руководитель",
-    TEAM_MEMBER: "Участник команды",
+    SALES_EXPERT: "Эксперт по продажам",
+    OPERATIONS_EXPERT: "Эксперт по операциям",
+    HYPOTHESIS_OWNER: "Владелец гипотезы",
     VIEWER: "Наблюдатель",
-    STAKEHOLDER: "Заинтересованная сторона",
+    STAKEHOLDER: "Стейкхолдер",
     ADMIN: "Администратор"
   }
 

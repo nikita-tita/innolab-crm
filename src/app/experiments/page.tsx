@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import AppLayout from "@/components/layout/AppLayout"
+import { canEdit, canDelete } from "@/lib/permissions"
+import { Edit2, Trash2 } from "lucide-react"
 
 interface Experiment {
   id: string
@@ -36,6 +38,7 @@ export default function Experiments() {
   const [view, setView] = useState<'cards' | 'create'>('cards')
   const [q, setQ] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("")
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -104,6 +107,32 @@ export default function Experiments() {
       fetchExperiments()
     }
   }, [status, statusFilter])
+
+  const handleDeleteExperiment = async (experimentId: string) => {
+    if (!confirm('Вы уверены, что хотите удалить этот эксперимент? Это действие необратимо.')) {
+      return
+    }
+
+    setDeletingId(experimentId)
+
+    try {
+      const response = await fetch(`/api/experiments/${experimentId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        setExperiments(prev => prev.filter(experiment => experiment.id !== experimentId))
+      } else {
+        console.error('Ошибка при удалении эксперимента')
+        alert('Ошибка при удалении эксперимента')
+      }
+    } catch (error) {
+      console.error('Ошибка при удалении эксперимента:', error)
+      alert('Ошибка при удалении эксперимента')
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -340,6 +369,40 @@ export default function Experiments() {
                         )}
                       </div>
                     </div>
+
+                    {/* Edit and Delete buttons for non-VIEWER roles */}
+                    {session?.user?.role && (canEdit(session.user.role) || canDelete(session.user.role)) && (
+                      <div className="flex justify-end space-x-2 mt-3 pt-3 border-t border-gray-100">
+                        {canEdit(session.user.role) && (
+                          <Link
+                            href={`/experiments/${experiment.id}/edit`}
+                            className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 text-sm"
+                          >
+                            <Edit2 className="h-3 w-3" />
+                            <span>Редактировать</span>
+                          </Link>
+                        )}
+                        {canDelete(session.user.role) && (
+                          <button
+                            onClick={() => handleDeleteExperiment(experiment.id)}
+                            disabled={deletingId === experiment.id}
+                            className="flex items-center space-x-1 text-red-600 hover:text-red-800 text-sm disabled:opacity-50"
+                          >
+                            {deletingId === experiment.id ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
+                                <span>Удаление...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Trash2 className="h-3 w-3" />
+                                <span>Удалить</span>
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

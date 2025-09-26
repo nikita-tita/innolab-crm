@@ -6,6 +6,8 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import ExportButton from "@/components/ui/ExportButton"
 import AppLayout from "@/components/layout/AppLayout"
+import { canEdit, canDelete } from "@/lib/permissions"
+import { Edit2, Trash2 } from "lucide-react"
 
 interface Idea {
   id: string
@@ -33,6 +35,7 @@ export default function Ideas() {
   const [ideas, setIdeas] = useState<Idea[]>([])
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState<'cards' | 'create'>('cards')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -68,6 +71,32 @@ export default function Ideas() {
       fetchIdeas()
     }
   }, [status])
+
+  const handleDeleteIdea = async (ideaId: string) => {
+    if (!confirm('Вы уверены, что хотите удалить эту идею? Это действие необратимо.')) {
+      return
+    }
+
+    setDeletingId(ideaId)
+
+    try {
+      const response = await fetch(`/api/ideas/${ideaId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        setIdeas(prev => prev.filter(idea => idea.id !== ideaId))
+      } else {
+        console.error('Ошибка при удалении идеи')
+        alert('Ошибка при удалении идеи')
+      }
+    } catch (error) {
+      console.error('Ошибка при удалении идеи:', error)
+      alert('Ошибка при удалении идеи')
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -323,6 +352,40 @@ export default function Ideas() {
                           </Link>
                         </div>
                       </div>
+
+                      {/* Edit and Delete buttons for non-VIEWER roles */}
+                      {session?.user?.role && (canEdit(session.user.role) || canDelete(session.user.role)) && (
+                        <div className="flex justify-end space-x-2 mt-3 pt-3 border-t border-gray-100">
+                          {canEdit(session.user.role) && (
+                            <Link
+                              href={`/ideas/${idea.id}/edit`}
+                              className="flex items-center space-x-1 text-blue-600 hover:text-blue-800 text-sm"
+                            >
+                              <Edit2 className="h-3 w-3" />
+                              <span>Редактировать</span>
+                            </Link>
+                          )}
+                          {canDelete(session.user.role) && (
+                            <button
+                              onClick={() => handleDeleteIdea(idea.id)}
+                              disabled={deletingId === idea.id}
+                              className="flex items-center space-x-1 text-red-600 hover:text-red-800 text-sm disabled:opacity-50"
+                            >
+                              {deletingId === idea.id ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-red-600"></div>
+                                  <span>Удаление...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Trash2 className="h-3 w-3" />
+                                  <span>Удалить</span>
+                                </>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
