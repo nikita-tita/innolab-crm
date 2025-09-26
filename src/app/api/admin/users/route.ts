@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import bcrypt from "bcryptjs"
 
 export async function GET() {
   try {
@@ -51,21 +52,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { name, email, role } = await request.json()
+    const { name, email, role, password } = await request.json()
 
     // Валидация
-    if (!name || !email || !role) {
+    if (!name || !email || !role || !password) {
       return NextResponse.json(
         { error: "Все поля обязательны" },
         { status: 400 }
       )
     }
 
-    // Проверяем, что роль подходит для наблюдателей
-    const viewerRoles = ["VIEWER", "STAKEHOLDER"]
-    if (!viewerRoles.includes(role)) {
+    // Проверяем допустимые роли
+    const allowedRoles = ["LAB_DIRECTOR", "PRODUCT_MANAGER", "UX_RESEARCHER", "MARKETER", "SALES_EXPERT", "OPERATIONS_EXPERT", "HYPOTHESIS_OWNER", "VIEWER", "STAKEHOLDER", "ADMIN"]
+    if (!allowedRoles.includes(role)) {
       return NextResponse.json(
-        { error: "Недопустимая роль для добавления через админку" },
+        { error: "Недопустимая роль" },
+        { status: 400 }
+      )
+    }
+
+    // Проверяем длину пароля
+    if (password.length < 6) {
+      return NextResponse.json(
+        { error: "Пароль должен содержать минимум 6 символов" },
         { status: 400 }
       )
     }
@@ -82,19 +91,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Создаем пользователя-наблюдателя
+    // Хешируем пароль
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    // Создаем пользователя
     const user = await prisma.user.create({
       data: {
         name,
         email,
         role,
+        password: hashedPassword,
         status: "ACTIVE",
         isActive: true
       }
     })
 
     return NextResponse.json({
-      message: "Наблюдатель успешно добавлен",
+      message: "Пользователь успешно создан",
       user: {
         id: user.id,
         name: user.name,
