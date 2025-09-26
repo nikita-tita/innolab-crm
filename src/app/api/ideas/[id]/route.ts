@@ -117,7 +117,7 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const { title, description, category, context } = body
+    const { title, description, category, context, priority, status, reach, impact, confidence, effort } = body
 
     if (!title || !description) {
       return NextResponse.json(
@@ -152,6 +152,12 @@ export async function PUT(
       throw error
     }
 
+    // Calculate RICE score if all values are provided
+    let riceScore = null
+    if (reach && impact && confidence && effort) {
+      riceScore = (reach * impact * confidence / 100) / effort
+    }
+
     const updated = await prisma.idea.update({
       where: { id },
       data: {
@@ -159,6 +165,13 @@ export async function PUT(
         description,
         category: category || null,
         context: context || null,
+        priority: priority || null,
+        status: status || null,
+        reach: reach || null,
+        impact: impact || null,
+        confidence: confidence || null,
+        effort: effort || null,
+        riceScore: riceScore,
       },
       include: {
         creator: { select: { id: true, name: true, email: true, role: true } },

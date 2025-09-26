@@ -93,7 +93,20 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const { title, description, methodology } = body
+    const {
+      title,
+      description,
+      type,
+      status,
+      startDate,
+      endDate,
+      actualStartDate,
+      actualEndDate,
+      methodology,
+      timeline,
+      resources,
+      successMetrics
+    } = body
 
     if (!title || !description) {
       return NextResponse.json(
@@ -133,7 +146,16 @@ export async function PUT(
       data: {
         title,
         description,
+        type: type || null,
+        status: status || null,
+        startDate: startDate ? new Date(startDate) : null,
+        endDate: endDate ? new Date(endDate) : null,
+        actualStartDate: actualStartDate ? new Date(actualStartDate) : null,
+        actualEndDate: actualEndDate ? new Date(actualEndDate) : null,
         methodology: methodology || null,
+        timeline: timeline || null,
+        resources: resources || null,
+        successMetrics: successMetrics || null,
       },
       include: {
         creator: { select: { id: true, name: true, email: true, role: true } },

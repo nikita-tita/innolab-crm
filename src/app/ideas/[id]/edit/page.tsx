@@ -12,6 +12,13 @@ interface IdeaData {
   description: string
   category: string
   context?: string
+  priority: string
+  status: string
+  reach?: number
+  impact?: number
+  confidence?: number
+  effort?: number
+  riceScore?: number
 }
 
 export default function EditIdea({ params }: { params: { id: string } }) {
@@ -22,7 +29,13 @@ export default function EditIdea({ params }: { params: { id: string } }) {
     title: "",
     description: "",
     category: "",
-    context: ""
+    context: "",
+    priority: "MEDIUM",
+    status: "NEW",
+    reach: 0,
+    impact: 1,
+    confidence: 50,
+    effort: 1
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -44,7 +57,13 @@ export default function EditIdea({ params }: { params: { id: string } }) {
             title: ideaData.title || "",
             description: ideaData.description || "",
             category: ideaData.category || "",
-            context: ideaData.context || ""
+            context: ideaData.context || "",
+            priority: ideaData.priority || "MEDIUM",
+            status: ideaData.status || "NEW",
+            reach: ideaData.reach || 0,
+            impact: ideaData.impact || 1,
+            confidence: ideaData.confidence || 50,
+            effort: ideaData.effort || 1
           })
         } else {
           console.error("Ошибка при загрузке идеи")
@@ -93,8 +112,17 @@ export default function EditIdea({ params }: { params: { id: string } }) {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: name === 'reach' || name === 'impact' || name === 'confidence' || name === 'effort'
+        ? parseInt(value) || 0
+        : value
     }))
+  }
+
+  const calculateRiceScore = () => {
+    if (formData.reach && formData.impact && formData.confidence && formData.effort) {
+      return (formData.reach * formData.impact * formData.confidence / 100) / formData.effort
+    }
+    return 0
   }
 
   if (status === "loading" || loading) {
@@ -217,12 +245,148 @@ export default function EditIdea({ params }: { params: { id: string } }) {
                 />
               </div>
 
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
+                    Приоритет
+                  </label>
+                  <select
+                    id="priority"
+                    name="priority"
+                    value={formData.priority}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="CRITICAL">Критический</option>
+                    <option value="HIGH">Высокий</option>
+                    <option value="MEDIUM">Средний</option>
+                    <option value="LOW">Низкий</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+                    Статус
+                  </label>
+                  <select
+                    id="status"
+                    name="status"
+                    value={formData.status}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="NEW">Новая</option>
+                    <option value="SCORED">RICE-оценка</option>
+                    <option value="SELECTED">Отобрана</option>
+                    <option value="IN_HYPOTHESIS">Проработка</option>
+                    <option value="COMPLETED">Готова</option>
+                    <option value="ARCHIVED">Архивирована</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                <h3 className="font-medium text-purple-900 mb-4">📊 RICE оценка</h3>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <div className="space-y-2">
+                    <label htmlFor="reach" className="block text-sm font-medium text-gray-700">
+                      Охват (Reach)
+                    </label>
+                    <input
+                      type="number"
+                      id="reach"
+                      name="reach"
+                      min="0"
+                      value={formData.reach}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Количество пользователей"
+                    />
+                    <p className="text-xs text-gray-500">Кол-во пользователей в месяц</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="impact" className="block text-sm font-medium text-gray-700">
+                      Влияние (Impact)
+                    </label>
+                    <select
+                      id="impact"
+                      name="impact"
+                      value={formData.impact}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value={1}>1 - Минимальное</option>
+                      <option value={2}>2 - Низкое</option>
+                      <option value={3}>3 - Среднее</option>
+                      <option value={4}>4 - Высокое</option>
+                      <option value={5}>5 - Максимальное</option>
+                    </select>
+                    <p className="text-xs text-gray-500">Сила воздействия на пользователя</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="confidence" className="block text-sm font-medium text-gray-700">
+                      Уверенность: {formData.confidence}%
+                    </label>
+                    <input
+                      type="range"
+                      id="confidence"
+                      name="confidence"
+                      min="0"
+                      max="100"
+                      step="5"
+                      value={formData.confidence}
+                      onChange={handleChange}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>0%</span>
+                      <span>50%</span>
+                      <span>100%</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="effort" className="block text-sm font-medium text-gray-700">
+                      Затраты (Effort)
+                    </label>
+                    <input
+                      type="number"
+                      id="effort"
+                      name="effort"
+                      min="1"
+                      value={formData.effort}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Человеко-дни"
+                    />
+                    <p className="text-xs text-gray-500">Затраты в человеко-днях</p>
+                  </div>
+                </div>
+
+                {calculateRiceScore() > 0 && (
+                  <div className="mt-4 p-3 bg-blue-100 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-blue-900">RICE Score:</span>
+                      <span className="text-lg font-bold text-blue-600">
+                        {Math.round(calculateRiceScore())}
+                      </span>
+                    </div>
+                    <p className="text-xs text-blue-700 mt-1">
+                      ({formData.reach} × {formData.impact} × {formData.confidence}%) ÷ {formData.effort}
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                 <h3 className="text-sm font-medium text-amber-900 mb-2">⚠️ Важно:</h3>
                 <ul className="text-sm text-amber-800 space-y-1">
                   <li>• Изменения в описании идеи могут повлиять на уже проставленные ICE-оценки</li>
                   <li>• После значительных изменений рекомендуется пересмотреть оценки команды</li>
                   <li>• Если идея уже перешла в статус гипотезы, будьте осторожны с изменениями</li>
+                  <li>• Вы можете очистить любое поле, оставив его пустым</li>
                 </ul>
               </div>
 
