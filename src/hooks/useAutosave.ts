@@ -100,30 +100,3 @@ function isEmptyData(data: any): boolean {
   return stringFields.every(val => !val.trim())
 }
 
-// Component to show autosave status
-export function AutosaveIndicator({
-  isSaving,
-  lastSaved
-}: {
-  isSaving?: boolean
-  lastSaved?: Date | null
-}) {
-  if (isSaving) {
-    return (
-      <div className="flex items-center text-xs text-gray-500">
-        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-500 mr-1"></div>
-        Сохранение...
-      </div>
-    )
-  }
-
-  if (lastSaved) {
-    return (
-      <div className="text-xs text-green-600">
-        ✓ Сохранено {lastSaved.toLocaleTimeString()}
-      </div>
-    )
-  }
-
-  return null
-}
