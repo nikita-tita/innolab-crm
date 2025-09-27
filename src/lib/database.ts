@@ -444,8 +444,8 @@ export class ExperimentRepository extends BaseRepository<any> {
             select: { id: true, name: true, email: true }
           },
           results: true,
-          mvps: {
-            select: { id: true, title: true, status: true }
+          successCriteria: {
+            select: { id: true, name: true, achieved: true }
           }
         },
         orderBy: { createdAt: 'desc' }
@@ -474,29 +474,8 @@ export class ExperimentRepository extends BaseRepository<any> {
   }
 }
 
-export class MVPRepository extends BaseRepository<any> {
-  constructor() {
-    super(prisma.mvp, 'MVP')
-  }
-
-  // Find by experiment
-  async findByExperiment(experimentId: string): Promise<any[]> {
-    return await this.query()
-      .where({ experimentId })
-      .findMany({
-        include: {
-          creator: {
-            select: { id: true, name: true, email: true }
-          },
-          attachments: true
-        },
-        orderBy: { createdAt: 'desc' }
-      })
-  }
-}
 
 // Export repository instances
 export const ideaRepository = new IdeaRepository()
 export const hypothesisRepository = new HypothesisRepository()
 export const experimentRepository = new ExperimentRepository()
-export const mvpRepository = new MVPRepository()

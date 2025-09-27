@@ -45,16 +45,18 @@ export async function GET(request: NextRequest) {
             }
           }
         },
-        mvps: {
+        successCriteria: {
           select: {
             id: true,
-            title: true,
-            status: true
+            name: true,
+            planValue: true,
+            actualValue: true,
+            isAchieved: true
           }
         },
         _count: {
           select: {
-            mvps: true,
+            successCriteria: true,
             comments: true
           }
         }
@@ -152,7 +154,7 @@ export async function POST(request: NextRequest) {
         },
         _count: {
           select: {
-            mvps: true,
+            successCriteria: true,
             comments: true
           }
         }

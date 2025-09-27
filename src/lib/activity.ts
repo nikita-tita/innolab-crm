@@ -53,7 +53,7 @@ export function getActivityDescription(
     idea: "идею",
     hypothesis: "гипотезу",
     experiment: "эксперимент",
-    mvp: "MVP"
+    successCriteria: "критерий успеха"
   }
 
   const entityName = entityTypeNames[entityType as keyof typeof entityTypeNames] || entityType

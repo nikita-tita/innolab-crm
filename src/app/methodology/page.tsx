@@ -151,8 +151,8 @@ export default function MethodologyPage() {
                       </div>
 
                       <div className="bg-gray-50 rounded-lg p-4">
-                        <h4 className="font-medium text-gray-900 mb-2">🚀 MVP</h4>
-                        <p className="text-sm text-gray-600 mb-2">Минимальный рабочий продукт</p>
+                        <h4 className="font-medium text-gray-900 mb-2">📊 Критерии успеха</h4>
+                        <p className="text-sm text-gray-600 mb-2">Четкие метрики для оценки результата</p>
                         <div className="space-y-1 text-xs text-gray-500">
                           <div>⏱️ Время: 2-8 недель</div>
                           <div>💰 Бюджет: 100-500k ₽</div>

@@ -1,4 +1,4 @@
-import { ideaRepository, hypothesisRepository, experimentRepository, mvpRepository } from './database'
+import { ideaRepository, hypothesisRepository, experimentRepository } from './database'
 import { logger } from './logger'
 import { prisma } from './prisma'
 

@@ -206,7 +206,7 @@ export default function Dashboard() {
               </div>
               <h3 className="font-semibold text-lg mb-2">3. Проведите эксперимент</h3>
               <p className="text-gray-600 text-sm">
-                Протестируйте гипотезу быстро и дешево: лендинг, прототип, опросы или MVP
+                Протестируйте гипотезу с четкими критериями успеха: лендинг, прототип, опросы
               </p>
             </div>
           </div>

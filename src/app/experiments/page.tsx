@@ -26,7 +26,7 @@ interface Experiment {
   creator: {
     name: string
   }
-  mvpsCount: number
+  successCriteriaCount: number
   commentsCount: number
 }
 
@@ -69,7 +69,7 @@ export default function Experiments() {
                 idea: { title: string };
               };
               creator: { name: string };
-              _count: { mvps: number; comments: number };
+              _count: { successCriteria: number; comments: number };
             };
             return {
             id: experiment.id,
@@ -89,7 +89,7 @@ export default function Experiments() {
             creator: {
               name: experiment.creator.name
             },
-            mvpsCount: experiment._count.mvps,
+            successCriteriaCount: experiment._count.successCriteria,
             commentsCount: experiment._count.comments
           }})
           setExperiments(formattedData)
@@ -227,7 +227,7 @@ export default function Experiments() {
                 </div>
                 <div className="bg-purple-100 rounded-lg p-3">
                   <h3 className="font-medium text-purple-900 mb-1">Выполнение</h3>
-                  <p className="text-purple-800">Запустите MVP, лендинг или опрос</p>
+                  <p className="text-purple-800">Запустите эксперимент с четкими критериями успеха</p>
                 </div>
                 <div className="bg-purple-100 rounded-lg p-3">
                   <h3 className="font-medium text-purple-900 mb-1">Сбор данных</h3>
@@ -291,7 +291,7 @@ export default function Experiments() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span>📱</span>
-                    <span><strong>MVP</strong> — минимально жизнеспособный продукт</span>
+                    <span><strong>Критерии успеха</strong> — измеримые показатели результата</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span>📋</span>
@@ -345,7 +345,7 @@ export default function Experiments() {
 
                   <div className="border-t pt-4">
                     <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                      <span>MVP: {experiment.mvpsCount}</span>
+                      <span>Критерии: {experiment.successCriteriaCount}</span>
                       <span>Комментарии: {experiment.commentsCount}</span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -361,10 +361,10 @@ export default function Experiments() {
                         </Link>
                         {experiment.status === 'PLANNING' && (
                           <Link
-                            href={`/mvps/new?experimentId=${experiment.id}`}
+                            href={`/experiments/${experiment.id}/success-criteria`}
                             className="text-green-600 hover:text-green-800 text-sm font-medium"
                           >
-                            Создать MVP
+                            Настроить критерии
                           </Link>
                         )}
                       </div>

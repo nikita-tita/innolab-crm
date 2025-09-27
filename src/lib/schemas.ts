@@ -149,7 +149,7 @@ export const experimentSchemas = {
     title: z.string().min(1).max(200),
     description: z.string().min(10).max(2000),
     hypothesisId: baseSchemas.id,
-    type: z.enum(['USER_INTERVIEW', 'AB_TEST', 'PROTOTYPE_TEST', 'MVP_TEST', 'SURVEY', 'MARKET_RESEARCH', 'WIZARD_OF_OZ', 'LANDING_PAGE', 'DATA_ANALYSIS', 'OTHER']).default('OTHER'),
+    type: z.enum(['USER_INTERVIEW', 'AB_TEST', 'PROTOTYPE_TEST', 'SURVEY', 'MARKET_RESEARCH', 'WIZARD_OF_OZ', 'LANDING_PAGE', 'DATA_ANALYSIS', 'OTHER']).default('OTHER'),
     startDate: baseSchemas.date.optional(),
     endDate: baseSchemas.date.optional(),
     methodology: z.string().max(1000).optional(),
@@ -161,7 +161,7 @@ export const experimentSchemas = {
   update: z.object({
     title: z.string().min(1).max(200).optional(),
     description: z.string().min(10).max(2000).optional(),
-    type: z.enum(['USER_INTERVIEW', 'AB_TEST', 'PROTOTYPE_TEST', 'MVP_TEST', 'SURVEY', 'MARKET_RESEARCH', 'WIZARD_OF_OZ', 'LANDING_PAGE', 'DATA_ANALYSIS', 'OTHER']).optional(),
+    type: z.enum(['USER_INTERVIEW', 'AB_TEST', 'PROTOTYPE_TEST', 'SURVEY', 'MARKET_RESEARCH', 'WIZARD_OF_OZ', 'LANDING_PAGE', 'DATA_ANALYSIS', 'OTHER']).optional(),
     status: z.enum(['PLANNING', 'RUNNING', 'PAUSED', 'COMPLETED', 'CANCELLED']).optional(),
     startDate: baseSchemas.date.optional(),
     endDate: baseSchemas.date.optional(),
@@ -195,34 +195,6 @@ export const successCriteriaSchemas = {
   })
 }
 
-// MVP
-export const mvpSchemas = {
-  create: z.object({
-    title: z.string().min(1).max(200),
-    description: z.string().min(10).max(2000),
-    experimentId: baseSchemas.id,
-    type: z.enum(['PROTOTYPE', 'LANDING_PAGE', 'WIREFRAME', 'DEMO', 'OTHER', 'MOCKUP']),
-    url: baseSchemas.url,
-    features: z.string().max(2000).optional(),
-    technicalSpecs: z.string().max(2000).optional(),
-    resources: z.string().max(1000).optional(),
-    timeline: z.string().max(500).optional(),
-    successCriteria: z.string().max(1000).optional()
-  }),
-
-  update: z.object({
-    title: z.string().min(1).max(200).optional(),
-    description: z.string().min(10).max(2000).optional(),
-    type: z.enum(['PROTOTYPE', 'LANDING_PAGE', 'WIREFRAME', 'DEMO', 'OTHER', 'MOCKUP']).optional(),
-    status: z.enum(['PLANNING', 'DEVELOPMENT', 'TESTING', 'DEPLOYED', 'ARCHIVED']).optional(),
-    url: baseSchemas.url,
-    features: z.string().max(2000).optional(),
-    technicalSpecs: z.string().max(2000).optional(),
-    resources: z.string().max(1000).optional(),
-    timeline: z.string().max(500).optional(),
-    successCriteria: z.string().max(1000).optional()
-  })
-}
 
 // Результаты экспериментов
 export const experimentResultSchemas = {
@@ -248,12 +220,11 @@ export const commentSchemas = {
     ideaId: baseSchemas.id.optional(),
     hypothesisId: baseSchemas.id.optional(),
     experimentId: baseSchemas.id.optional(),
-    mvpId: baseSchemas.id.optional()
   }).refine(data => {
-    const targets = [data.ideaId, data.hypothesisId, data.experimentId, data.mvpId]
+    const targets = [data.ideaId, data.hypothesisId, data.experimentId]
     return targets.filter(Boolean).length === 1
   }, {
-    message: "Exactly one target (ideaId, hypothesisId, experimentId, or mvpId) must be provided"
+    message: "Exactly one target (ideaId, hypothesisId, or experimentId) must be provided"
   }),
 
   update: z.object({
@@ -285,7 +256,7 @@ export const filterSchemas = {
 
   experiments: z.object({
     status: z.enum(['PLANNING', 'RUNNING', 'PAUSED', 'COMPLETED', 'CANCELLED']).optional(),
-    type: z.enum(['USER_INTERVIEW', 'AB_TEST', 'PROTOTYPE_TEST', 'MVP_TEST', 'SURVEY', 'MARKET_RESEARCH', 'WIZARD_OF_OZ', 'LANDING_PAGE', 'DATA_ANALYSIS', 'OTHER']).optional(),
+    type: z.enum(['USER_INTERVIEW', 'AB_TEST', 'PROTOTYPE_TEST', 'SURVEY', 'MARKET_RESEARCH', 'WIZARD_OF_OZ', 'LANDING_PAGE', 'DATA_ANALYSIS', 'OTHER']).optional(),
     hypothesisId: baseSchemas.id.optional(),
     search: z.string().optional(),
     page: z.coerce.number().min(1).default(1),

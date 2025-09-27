@@ -36,7 +36,6 @@ model User {
   createdHypotheses Hypothesis[] @relation("HypothesisCreator")
   ownedHypotheses   Hypothesis[] @relation("HypothesisOwner")
   createdIdeas      Idea[]       @relation("IdeaCreator")
-  createdMVPs       MVP[]        @relation("MVPCreator")
   lessons           Lesson[]
   sessions          Session[]
   iceScores         ICEScore[]
@@ -234,8 +233,8 @@ model Experiment {
   creator         User               @relation("ExperimentCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   hypothesis      Hypothesis         @relation(fields: [hypothesisId], references: [id], onDelete: Cascade)
   results         ExperimentResult[]
+  successCriteria ExperimentSuccessCriteria[]
   lessons         Lesson[]
-  mvps            MVP[]
 
   // Indexes for performance
   @@index([status, type])
@@ -248,37 +247,6 @@ model Experiment {
   @@unique([hypothesisId, title], name: "unq_experiment_title_per_hypothesis")
 }
 
-model MVP {
-  id              String       @id @default(cuid())
-  title           String
-  description     String
-  type            MVPType
-  url             String?
-  status          MVPStatus    @default(PLANNING)
-  features        String?
-  technicalSpecs  String?
-  resources       String?
-  timeline        String?
-  successCriteria String?
-  deletedAt       DateTime?    // Soft delete timestamp
-  createdBy       String
-  experimentId    String
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-
-  // Relations
-  attachments     Attachment[]
-  comments        Comment[]
-  creator         User         @relation("MVPCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-  experiment      Experiment   @relation(fields: [experimentId], references: [id], onDelete: Cascade)
-
-  // Indexes for performance
-  @@index([status, type])
-  @@index([experimentId])
-  @@index([createdBy])
-  @@index([deletedAt], map: "idx_mvp_deleted")
-  @@unique([experimentId, title], name: "unq_mvp_title_per_experiment")
-}
 
 model SuccessCriteria {
   id           String     @id @default(cuid())
@@ -317,6 +285,25 @@ model ExperimentResult {
   @@index([experimentId])
 }
 
+model ExperimentSuccessCriteria {
+  id           String      @id @default(cuid())
+  name         String      // Название критерия
+  planValue    String      // Планируемый результат (может быть текст или цифра)
+  actualValue  String?     // Фактический результат
+  unit         String?     // Единица измерения (если применимо)
+  isAchieved   Boolean?    // Достигнут ли критерий
+  notes        String?     // Дополнительные заметки
+  experimentId String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // Relations
+  experiment   Experiment  @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@index([experimentId])
+}
+
 model Comment {
   id           String      @id @default(cuid())
   content      String
@@ -324,7 +311,6 @@ model Comment {
   ideaId       String?
   hypothesisId String?
   experimentId String?
-  mvpId        String?
   deletedAt    DateTime?   // Soft delete timestamp
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
@@ -333,29 +319,16 @@ model Comment {
   experiment   Experiment? @relation(fields: [experimentId], references: [id], onDelete: SetNull)
   hypothesis   Hypothesis? @relation(fields: [hypothesisId], references: [id], onDelete: SetNull)
   idea         Idea?       @relation(fields: [ideaId], references: [id], onDelete: SetNull)
-  mvp          MVP?        @relation(fields: [mvpId], references: [id], onDelete: SetNull)
   user         User        @relation(fields: [userId], references: [id])
 
   // Indexes for efficient comment queries
   @@index([ideaId, createdAt], map: "idx_comment_idea_created")
   @@index([hypothesisId, createdAt], map: "idx_comment_hypothesis_created")
   @@index([experimentId, createdAt], map: "idx_comment_experiment_created")
-  @@index([mvpId, createdAt], map: "idx_comment_mvp_created")
   @@index([userId])
   @@index([deletedAt], map: "idx_comment_deleted")
 }
 
-model Attachment {
-  id        String   @id @default(cuid())
-  filename  String
-  url       String
-  size      Int
-  mimeType  String
-  mvpId     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  mvp       MVP?     @relation(fields: [mvpId], references: [id])
-}
 
 model Artifact {
   id            String     @id @default(cuid())
@@ -443,7 +416,7 @@ model Activity {
   id           String        @id @default(cuid())
   type         ActivityType
   description  String
-  entityType   String        // "idea", "hypothesis", "experiment", "mvp"
+  entityType   String        // "idea", "hypothesis", "experiment"
   entityId     String
   userId       String
   metadata     Json?         // Additional data about the activity
@@ -553,42 +526,24 @@ enum HypothesisStatus {
 }
 
 enum ExperimentStatus {
-  PLANNING
-  RUNNING
-  PAUSED
-  COMPLETED
-  CANCELLED
+  PLANNING     // Планирование
+  IN_PROGRESS  // Выполняется
+  PAUSED       // Приостановлен
+  COMPLETED    // Завершен
+  CANCELLED    // Отменен
 }
 
 enum ExperimentType {
-  USER_INTERVIEW     // Глубинные интервью
+  QUANTITATIVE      // Количественное исследование
+  QUALITATIVE       // Качественное исследование (интервью)
+  PROTOTYPE         // Прототипирование
   AB_TEST           // A/B тестирование
-  PROTOTYPE_TEST    // Тестирование прототипа
-  MVP_TEST          // Тестирование MVP
   SURVEY            // Опросы
-  MARKET_RESEARCH   // Исследование рынка
-  WIZARD_OF_OZ      // Имитация процесса
   LANDING_PAGE      // Тест лендинга
   DATA_ANALYSIS     // Анализ данных
   OTHER             // Другое
 }
 
-enum MVPType {
-  PROTOTYPE
-  LANDING_PAGE
-  WIREFRAME
-  DEMO
-  OTHER
-  MOCKUP
-}
-
-enum MVPStatus {
-  PLANNING
-  DEVELOPMENT
-  TESTING
-  DEPLOYED
-  ARCHIVED
-}
 
 enum ActivityType {
   CREATED

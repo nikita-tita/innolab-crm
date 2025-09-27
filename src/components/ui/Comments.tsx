@@ -14,7 +14,6 @@ type Props = {
   ideaId?: string
   hypothesisId?: string
   experimentId?: string
-  mvpId?: string
 }
 
 export default function Comments(props: Props) {
@@ -31,7 +30,6 @@ export default function Comments(props: Props) {
       if (props.ideaId) qs.set("ideaId", props.ideaId)
       if (props.hypothesisId) qs.set("hypothesisId", props.hypothesisId)
       if (props.experimentId) qs.set("experimentId", props.experimentId)
-      if (props.mvpId) qs.set("mvpId", props.mvpId)
       const res = await fetch(`/api/comments?${qs.toString()}`)
       if (res.ok) {
         const data = await res.json()
@@ -41,7 +39,7 @@ export default function Comments(props: Props) {
     }
     load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.ideaId, props.hypothesisId, props.experimentId, props.mvpId])
+  }, [props.ideaId, props.hypothesisId, props.experimentId])
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,8 +53,7 @@ export default function Comments(props: Props) {
           content: text,
           ideaId: props.ideaId,
           hypothesisId: props.hypothesisId,
-          experimentId: props.experimentId,
-          mvpId: props.mvpId
+          experimentId: props.experimentId
         })
       })
       if (res.ok) {

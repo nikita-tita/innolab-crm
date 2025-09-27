@@ -22,7 +22,7 @@ export async function GET(
       include: {
         creator: { select: { id: true, name: true, email: true, role: true } },
         hypothesis: { select: { id: true, title: true } },
-        _count: { select: { mvps: true, comments: true } }
+        _count: { select: { comments: true, successCriteria: true } }
       }
     })
 
@@ -67,7 +67,7 @@ export async function PATCH(
       include: {
         creator: { select: { id: true, name: true, email: true, role: true } },
         hypothesis: { select: { id: true, title: true } },
-        _count: { select: { mvps: true, comments: true } }
+        _count: { select: { comments: true, successCriteria: true } }
       }
     })
 
@@ -160,7 +160,7 @@ export async function PUT(
       include: {
         creator: { select: { id: true, name: true, email: true, role: true } },
         hypothesis: { select: { id: true, title: true } },
-        _count: { select: { mvps: true, comments: true } }
+        _count: { select: { comments: true, successCriteria: true } }
       }
     })
 

@@ -3,8 +3,8 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import Comments from "@/components/ui/Comments"
 import StatusControls from "./status-controls"
-import ExperimentResults from "@/components/ui/ExperimentResults"
-import ExperimentAnalysis from "@/components/ui/ExperimentAnalysis"
+import ExperimentSuccessCriteriaWrapper from "./success-criteria-wrapper"
+import { ExperimentStatusBadge } from "@/components/ui/experiment-status-badge"
 
 export default async function ExperimentDetails({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -16,13 +16,11 @@ export default async function ExperimentDetails({ params }: { params: Promise<{ 
         select: {
           id: true,
           title: true,
-          idea: { select: { id: true, title: true } },
-          successCriteria: true
+          idea: { select: { id: true, title: true } }
         }
       },
-      mvps: { select: { id: true, title: true, status: true, type: true } },
-      results: true,
-      _count: { select: { mvps: true, comments: true, results: true } },
+      successCriteria: { orderBy: { createdAt: 'asc' } },
+      _count: { select: { comments: true, successCriteria: true } },
     },
   })
 
@@ -52,7 +50,7 @@ export default async function ExperimentDetails({ params }: { params: Promise<{ 
           </div>
           <h1 className="text-2xl font-semibold text-gray-900 mb-2">{exp.title}</h1>
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-            <span className="bg-gray-100 px-2 py-0.5 rounded">Статус: {exp.status}</span>
+            <ExperimentStatusBadge status={exp.status} type={exp.type} />
           </div>
           <StatusControls id={exp.id} current={exp.status} />
           <p className="text-gray-700 leading-7 whitespace-pre-wrap mb-4">{exp.description}</p>
@@ -65,53 +63,25 @@ export default async function ExperimentDetails({ params }: { params: Promise<{ 
           {exp.resources && (
             <div className="mb-2 text-sm text-gray-700"><span className="font-medium">Ресурсы:</span> {exp.resources}</div>
           )}
-          {exp.successMetrics && (
-            <div className="mb-2 text-sm text-gray-700"><span className="font-medium">Метрики успеха:</span> {exp.successMetrics}</div>
-          )}
 
           <div className="mt-6 border-t pt-4">
-            <h2 className="text-lg font-medium text-gray-900 mb-2">MVP ({exp._count.mvps})</h2>
-            {exp.mvps.length === 0 ? (
-              <div className="text-sm text-gray-500">Пока нет связанных MVP</div>
-            ) : (
-              <ul className="space-y-2">
-                {exp.mvps.map(m => (
-                  <li key={m.id} className="flex items-center justify-between bg-gray-50 rounded p-3">
-                    <div className="truncate pr-2">
-                      <Link href={`/mvps/${m.id}`} className="text-blue-600 hover:text-blue-800">
-                        {m.title}
-                      </Link>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded">{m.type}</span>
-                      <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded">{m.status}</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <ExperimentSuccessCriteriaWrapper
+              experimentId={exp.id}
+              initialCriteria={exp.successCriteria}
+              showActualValues={exp.status === 'IN_PROGRESS' || exp.status === 'COMPLETED'}
+              disabled={exp.status === 'COMPLETED'}
+            />
           </div>
 
           <div className="mt-6 flex gap-3">
-            <Link href={`/mvps/new?experimentId=${exp.id}`} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-              Создать MVP
+            <Link href={`/experiments/${exp.id}/edit`} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+              Редактировать
             </Link>
             <Link href="/experiments" className="border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50">
               Назад к списку
             </Link>
           </div>
 
-          <div className="mt-8">
-            <ExperimentResults
-              experimentId={exp.id}
-              experimentTitle={exp.title}
-              successCriteria={exp.hypothesis.successCriteria}
-            />
-          </div>
-
-          <div className="mt-8">
-            <ExperimentAnalysis experimentId={exp.id} />
-          </div>
 
           <Comments experimentId={exp.id} />
         </div>

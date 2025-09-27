@@ -16,19 +16,16 @@ export async function GET(request: NextRequest) {
     const ideaId = searchParams.get("ideaId")
     const hypothesisId = searchParams.get("hypothesisId")
     const experimentId = searchParams.get("experimentId")
-    const mvpId = searchParams.get("mvpId")
 
     const where: {
       ideaId?: string
       hypothesisId?: string
       experimentId?: string
-      mvpId?: string
     } = {}
 
     if (ideaId) where.ideaId = ideaId
     if (hypothesisId) where.hypothesisId = hypothesisId
     if (experimentId) where.experimentId = experimentId
-    if (mvpId) where.mvpId = mvpId
 
     const comments = await prisma.comment.findMany({
       where,
@@ -64,13 +61,11 @@ export async function POST(request: NextRequest) {
       ideaId,
       hypothesisId,
       experimentId,
-      mvpId
     }: {
       content: string
       ideaId?: string
       hypothesisId?: string
       experimentId?: string
-      mvpId?: string
     } = body
 
     if (!content || !content.trim()) {
@@ -80,7 +75,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!ideaId && !hypothesisId && !experimentId && !mvpId) {
+    if (!ideaId && !hypothesisId && !experimentId) {
       return NextResponse.json(
         { error: "Target entity id is required" },
         { status: 400 }
@@ -94,7 +89,6 @@ export async function POST(request: NextRequest) {
         ideaId: ideaId || null,
         hypothesisId: hypothesisId || null,
         experimentId: experimentId || null,
-        mvpId: mvpId || null
       },
       include: {
         user: {
@@ -119,10 +113,6 @@ export async function POST(request: NextRequest) {
       entityType = "experiment"
       const experiment = await prisma.experiment.findUnique({ where: { id: experimentId }, select: { title: true } })
       entityTitle = experiment?.title || "Unknown"
-    } else if (mvpId) {
-      entityType = "mvp"
-      const mvp = await prisma.mVP.findUnique({ where: { id: mvpId }, select: { title: true } })
-      entityTitle = mvp?.title || "Unknown"
     }
 
     // Log activity
@@ -131,7 +121,7 @@ export async function POST(request: NextRequest) {
         type: "COMMENT_ADDED",
         description: getActivityDescription("COMMENT_ADDED", entityType, entityTitle, session.user.email || ""),
         entityType,
-        entityId: ideaId || hypothesisId || experimentId || mvpId || "",
+        entityId: ideaId || hypothesisId || experimentId || "",
         userId: session.user.id
       })
     }

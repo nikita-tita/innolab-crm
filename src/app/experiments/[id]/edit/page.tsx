@@ -220,7 +220,6 @@ export default function EditExperiment({ params }: { params: { id: string } }) {
                     <option value="SURVEY">Опрос</option>
                     <option value="INTERVIEW">Интервью</option>
                     <option value="LANDING_PAGE">Лендинг</option>
-                    <option value="MVP">MVP</option>
                     <option value="ANALYTICS">Аналитика</option>
                     <option value="OTHER">Другое</option>
                   </select>

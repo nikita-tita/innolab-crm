@@ -23,13 +23,13 @@ export async function POST(request: NextRequest) {
 
     // Проверяем, что роль разрешена для регистрации
     const allowedRoles = [
-      "TEAM_MEMBER",
       "PRODUCT_MANAGER",
-      "DESIGNER",
+      "UX_RESEARCHER",
       "MARKETER",
-      "ANALYST",
-      "MIDDLE_OFFICE",
-      "EXECUTIVE"
+      "SALES_EXPERT",
+      "OPERATIONS_EXPERT",
+      "HYPOTHESIS_OWNER",
+      "STAKEHOLDER"
     ]
 
     if (!allowedRoles.includes(role)) {
