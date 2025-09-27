@@ -3,17 +3,11 @@
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { KnowledgeBase } from "@/components/ui/knowledge-base";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BookOpen,
-  TrendingUp,
   Lightbulb,
   BarChart3,
-  Users,
-  Clock,
-  Award,
   Target
 } from "lucide-react";
 
@@ -26,7 +20,7 @@ import AppLayout from "@/components/layout/AppLayout"
 export default function KnowledgePage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState("lessons");
+  const [activeTab, setActiveTab] = useState("methodology");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -46,15 +40,6 @@ export default function KnowledgePage() {
     return null
   }
 
-  // Статистика пустая пока нет данных
-  const stats = {
-    totalLessons: 0,
-    successRate: 0,
-    avgConfidence: 0,
-    topCategory: "Нет данных",
-    recentLessons: 0,
-    popularTags: []
-  };
 
   return (
     <AppLayout>
@@ -62,199 +47,197 @@ export default function KnowledgePage() {
         <div className="px-4 py-6 sm:px-0">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">
-              📚 База знаний
+              📚 Обучение и методология
             </h1>
             <p className="text-gray-600 mt-2">
-              Накопленные знания, лучшие практики и уроки из экспериментов
+              Руководства по методологии инновационной воронки и инструменты для команды
             </p>
           </div>
           <div className="space-y-6">
 
-      {/* Обзорная статистика */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-600" />
-              <div>
-                <div className="text-2xl font-bold text-green-600">{stats.successRate}%</div>
-                <div className="text-sm text-gray-600">Уровень успеха</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-blue-600" />
-              <div>
-                <div className="text-2xl font-bold text-blue-600">{stats.avgConfidence}%</div>
-                <div className="text-sm text-gray-600">Средняя уверенность</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-purple-600" />
-              <div>
-                <div className="text-2xl font-bold text-purple-600">{stats.recentLessons}</div>
-                <div className="text-sm text-gray-600">За последний месяц</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Award className="h-5 w-5 text-yellow-600" />
-              <div>
-                <div className="text-lg font-bold text-yellow-600">{stats.topCategory}</div>
-                <div className="text-sm text-gray-600">Топ категория</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Основной контент */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="lessons">
-            <BookOpen className="h-4 w-4 mr-2" />
-            Уроки из экспериментов
-          </TabsTrigger>
           <TabsTrigger value="methodology">
             <Lightbulb className="h-4 w-4 mr-2" />
-            Методология и шаблоны
+            Руководства по методологии
+          </TabsTrigger>
+          <TabsTrigger value="templates">
+            <BookOpen className="h-4 w-4 mr-2" />
+            Шаблоны и чек-листы
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="lessons">
-          <KnowledgeBase />
-        </TabsContent>
-
         <TabsContent value="methodology" className="space-y-6">
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* Методологические руководства */}
+          <div className="space-y-6">
+            {/* ICE Scoring */}
             <Card>
               <CardHeader>
-                <CardTitle>Руководства по методологии</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-blue-600" />
+                  ICE Scoring - Командная оценка идей
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                    <div>
-                      <h4 className="font-medium">ICE Evaluation</h4>
-                      <p className="text-sm text-gray-600">Командная оценка идей по критериям Impact, Confidence, Ease</p>
+                <p className="text-gray-700">
+                  ICE (Impact, Confidence, Ease) — метод быстрой оценки идей командой для приоритизации.
+                </p>
+
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="p-4 bg-red-50 rounded-lg">
+                    <h4 className="font-semibold text-red-800 mb-2">📈 Impact (Влияние)</h4>
+                    <p className="text-sm text-gray-700">Насколько сильно идея повлияет на ключевые метрики бизнеса</p>
+                    <div className="mt-2 text-xs text-gray-600">
+                      <strong>1-3:</strong> Минимальное влияние<br/>
+                      <strong>4-7:</strong> Среднее влияние<br/>
+                      <strong>8-10:</strong> Высокое влияние
                     </div>
-                    <Button variant="outline" size="sm">Открыть</Button>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                    <div>
-                      <h4 className="font-medium">Desk Research</h4>
-                      <p className="text-sm text-gray-600">Методы кабинетных исследований для проработки гипотез</p>
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <h4 className="font-semibold text-blue-800 mb-2">🎯 Confidence (Уверенность)</h4>
+                    <p className="text-sm text-gray-700">Насколько команда уверена в успехе этой идеи</p>
+                    <div className="mt-2 text-xs text-gray-600">
+                      <strong>1-3:</strong> Низкая уверенность<br/>
+                      <strong>4-7:</strong> Средняя уверенность<br/>
+                      <strong>8-10:</strong> Высокая уверенность
                     </div>
-                    <Button variant="outline" size="sm">Открыть</Button>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-                    <div>
-                      <h4 className="font-medium">Методы валидации</h4>
-                      <p className="text-sm text-gray-600">Быстрые и дешевые способы проверки гипотез</p>
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <h4 className="font-semibold text-green-800 mb-2">⚡ Ease (Простота)</h4>
+                    <p className="text-sm text-gray-700">Насколько легко реализовать эту идею</p>
+                    <div className="mt-2 text-xs text-gray-600">
+                      <strong>1-3:</strong> Сложная реализация<br/>
+                      <strong>4-7:</strong> Средняя сложность<br/>
+                      <strong>8-10:</strong> Простая реализация
                     </div>
-                    <Button variant="outline" size="sm">Открыть</Button>
                   </div>
                 </div>
+
+                <div className="p-4 bg-yellow-50 rounded-lg">
+                  <h4 className="font-semibold mb-2">💡 Как использовать ICE:</h4>
+                  <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside">
+                    <li>Каждый участник команды оценивает идею по трем критериям от 1 до 10</li>
+                    <li>Вычисляется средний балл по каждому критерию</li>
+                    <li>ICE Score = (Impact + Confidence + Ease) / 3</li>
+                    <li>Идеи ранжируются по итоговому баллу</li>
+                  </ol>
+                </div>
+
+                <Button className="w-full">
+                  ➕ Добавить материал по ICE
+                </Button>
               </CardContent>
             </Card>
 
-            {/* Шаблоны и чек-листы */}
+            {/* RICE Scoring */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-green-600" />
+                  RICE Scoring - Приоритизация гипотез
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-gray-700">
+                  RICE (Reach × Impact × Confidence ÷ Effort) — метод количественной оценки гипотез для определения приоритетов в разработке.
+                </p>
+
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="p-4 bg-purple-50 rounded-lg">
+                    <h4 className="font-semibold text-purple-800 mb-2">👥 Reach (Охват)</h4>
+                    <p className="text-sm text-gray-700">Сколько пользователей затронет изменение за период</p>
+                    <div className="mt-2 text-xs text-gray-600">
+                      Число пользователей в месяц/квартал
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-red-50 rounded-lg">
+                    <h4 className="font-semibold text-red-800 mb-2">📈 Impact (Влияние)</h4>
+                    <p className="text-sm text-gray-700">Насколько сильно изменение повлияет на каждого пользователя</p>
+                    <div className="mt-2 text-xs text-gray-600">
+                      <strong>1:</strong> Минимальное<br/>
+                      <strong>2:</strong> Низкое<br/>
+                      <strong>3:</strong> Среднее<br/>
+                      <strong>4:</strong> Высокое<br/>
+                      <strong>5:</strong> Огромное
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <h4 className="font-semibold text-blue-800 mb-2">🎯 Confidence (Уверенность)</h4>
+                    <p className="text-sm text-gray-700">Насколько мы уверены в оценках</p>
+                    <div className="mt-2 text-xs text-gray-600">
+                      Процент уверенности (0-100%)
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-orange-50 rounded-lg">
+                    <h4 className="font-semibold text-orange-800 mb-2">⏱️ Effort (Усилия)</h4>
+                    <p className="text-sm text-gray-700">Сколько времени команды потребуется</p>
+                    <div className="mt-2 text-xs text-gray-600">
+                      Человеко-дни или недели
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-green-50 rounded-lg">
+                  <h4 className="font-semibold mb-2">🧮 Формула RICE:</h4>
+                  <div className="text-center p-4 bg-white rounded border-2 border-dashed border-green-300">
+                    <div className="text-lg font-mono">
+                      RICE Score = (Reach × Impact × Confidence) ÷ Effort
+                    </div>
+                    <p className="text-sm text-gray-600 mt-2">
+                      Чем выше балл, тем выше приоритет гипотезы
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-semibold mb-2">📋 Пример расчета:</h4>
+                  <div className="text-sm text-gray-700">
+                    <strong>Гипотеза:</strong> Упрощение формы регистрации<br/>
+                    <strong>Reach:</strong> 1000 пользователей/месяц<br/>
+                    <strong>Impact:</strong> 3 (среднее влияние)<br/>
+                    <strong>Confidence:</strong> 80%<br/>
+                    <strong>Effort:</strong> 5 человеко-дней<br/>
+                    <strong>RICE:</strong> (1000 × 3 × 0.8) ÷ 5 = 480
+                  </div>
+                </div>
+
+                <Button className="w-full">
+                  ➕ Добавить материал по RICE
+                </Button>
+              </CardContent>
+            </Card>
+
+          </div>
+        </TabsContent>
+
+        <TabsContent value="templates" className="space-y-6">
+          <div className="space-y-6">
+            {/* Пустое состояние для шаблонов */}
             <Card>
               <CardHeader>
                 <CardTitle>Шаблоны и чек-листы</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium">Чек-лист планирования эксперимента</h4>
-                      <p className="text-sm text-gray-600">7 шагов для правильной подготовки</p>
-                    </div>
-                    <Button variant="outline" size="sm">Скачать</Button>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium">Шаблон отчета по результатам</h4>
-                      <p className="text-sm text-gray-600">Структурированный формат выводов</p>
-                    </div>
-                    <Button variant="outline" size="sm">Скачать</Button>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium">Калькулятор размера выборки</h4>
-                      <p className="text-sm text-gray-600">Инструмент для расчета статистики</p>
-                    </div>
-                    <Button variant="outline" size="sm">Открыть</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Инновационная воронка */}
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Инновационная воронка InLab</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
-                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                    <div className="text-xl font-bold text-blue-600 mb-1">💡</div>
-                    <h4 className="font-medium text-sm mb-1">Идея</h4>
-                    <p className="text-xs text-gray-600">Описание + ICE оценка</p>
-                  </div>
-
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-xl font-bold text-green-600 mb-1">🔬</div>
-                    <h4 className="font-medium text-sm mb-1">Гипотеза L1</h4>
-                    <p className="text-xs text-gray-600">Формулировка</p>
-                  </div>
-
-                  <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                    <div className="text-xl font-bold text-yellow-600 mb-1">📚</div>
-                    <h4 className="font-medium text-sm mb-1">Гипотеза L2</h4>
-                    <p className="text-xs text-gray-600">+ Desk research</p>
-                  </div>
-
-                  <div className="text-center p-3 bg-purple-50 rounded-lg">
-                    <div className="text-xl font-bold text-purple-600 mb-1">⚗️</div>
-                    <h4 className="font-medium text-sm mb-1">Эксперимент</h4>
-                    <p className="text-xs text-gray-600">Валидация</p>
-                  </div>
-
-                  <div className="text-center p-3 bg-emerald-50 rounded-lg">
-                    <div className="text-xl font-bold text-emerald-600 mb-1">🚀</div>
-                    <h4 className="font-medium text-sm mb-1">InLab</h4>
-                    <p className="text-xs text-gray-600">Если подтверждена</p>
-                  </div>
-
-                  <div className="text-center p-3 bg-orange-50 rounded-lg">
-                    <div className="text-xl font-bold text-orange-600 mb-1">🏢</div>
-                    <h4 className="font-medium text-sm mb-1">М2</h4>
-                    <p className="text-xs text-gray-600">Продуктовая линейка</p>
-                  </div>
+                <div className="text-center py-8">
+                  <BookOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Пока нет шаблонов</h3>
+                  <p className="text-gray-600 mb-4">
+                    Здесь будут размещаться чек-листы, шаблоны отчетов и другие материалы для работы
+                  </p>
+                  <Button>
+                    ➕ Добавить шаблон
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
+
       </Tabs>
           </div>
         </div>
