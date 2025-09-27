@@ -5,7 +5,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Comments from "@/components/ui/Comments"
 import HADIStepper from "@/components/ui/HADIStepper"
-import StatusControls from "./status-controls"
+import { HypothesisStatusManager } from "@/components/ui/hypothesis-status-manager"
 import SuccessCriteriaPanel from "@/components/ui/SuccessCriteriaPanel"
 import { RiceScoring } from "@/components/ui/rice-scoring"
 import { SimpleDeskResearch } from "@/components/ui/simple-desk-research"
@@ -97,7 +97,33 @@ export default function HypothesisDetails({ params }: { params: Promise<{ id: st
                 )}
               </div>
 
-              <StatusControls id={hypothesis.id} current={hypothesis.status} type="hypothesis" />
+              <HypothesisStatusManager
+                id={hypothesis.id}
+                currentStatus={hypothesis.status}
+                currentLevel={hypothesis.level || "LEVEL_1"}
+                hasDescription={!!hypothesis.description}
+                hasDeskResearch={!!hypothesis.deskResearchNotes}
+                hasRiceScoring={!!(hypothesis.reach && hypothesis.impact && hypothesis.confidence && hypothesis.effort)}
+                hasSuccessCriteria={!!(hypothesis.successCriteria && hypothesis.successCriteria.length > 0)}
+                onStatusChange={async (status, level) => {
+                  try {
+                    const body: any = { status }
+                    if (level) body.level = level
+
+                    const response = await fetch(`/api/hypotheses/${hypothesis.id}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(body)
+                    })
+                    if (response.ok) {
+                      const updated = await response.json()
+                      setHypothesis(updated)
+                    }
+                  } catch (error) {
+                    console.error("Error updating status:", error)
+                  }
+                }}
+              />
               <HADIStepper current={hypothesis.status === 'DRAFT' ? 'H' : hypothesis.status === 'IN_EXPERIMENT' || hypothesis.status === 'READY_FOR_TESTING' ? 'A' : hypothesis.status === 'VALIDATED' || hypothesis.status === 'INVALIDATED' ? 'I' : 'D'} />
 
               <div className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">

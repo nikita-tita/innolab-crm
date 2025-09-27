@@ -49,7 +49,7 @@ export async function PATCH(
 
     const { id } = await params
     const body = await request.json()
-    const { status } = body as { status?: HypothesisStatus }
+    const { status, level } = body as { status?: HypothesisStatus; level?: string }
 
     if (!status) {
       return NextResponse.json(
@@ -58,9 +58,14 @@ export async function PATCH(
       )
     }
 
+    const updateData: any = { status: status as HypothesisStatus }
+    if (level) {
+      updateData.level = level
+    }
+
     const updated = await prisma.hypothesis.update({
       where: { id },
-      data: { status: status as HypothesisStatus },
+      data: updateData,
       include: {
         creator: { select: { id: true, name: true, email: true, role: true } },
         idea: { select: { id: true, title: true } },
