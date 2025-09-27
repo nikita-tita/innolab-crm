@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import AppLayout from "@/components/layout/AppLayout"
-import { canEdit, canDelete } from "@/lib/permissions"
+import { canEdit, canDelete, canCreate } from "@/lib/permissions"
 import { Edit2, Trash2 } from "lucide-react"
+import { Breadcrumbs, breadcrumbPatterns } from "@/components/ui/Breadcrumbs"
 
 interface Hypothesis {
   id: string
@@ -177,6 +178,7 @@ export default function Hypotheses() {
     <AppLayout>
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
+          <Breadcrumbs items={breadcrumbPatterns.hypotheses.list()} />
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-900">🔬 Гипотезы</h1>
             <div className="flex items-center space-x-4">
@@ -201,21 +203,23 @@ export default function Hypotheses() {
                 >
                   📋 Карточки
                 </button>
-                <button
-                  onClick={() => setView('create')}
-                  className={`px-3 py-1 rounded text-sm font-medium ${
-                    view === 'create'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  ➕ Создать
-                </button>
+                {canCreate(session?.user?.role as any) && (
+                  <button
+                    onClick={() => setView('create')}
+                    className={`px-3 py-1 rounded text-sm font-medium ${
+                      view === 'create'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    ➕ Создать
+                  </button>
+                )}
               </div>
             </div>
           </div>
 
-          {view === 'create' ? (
+          {view === 'create' && canCreate(session?.user?.role as any) ? (
             <div className="bg-white rounded-xl shadow-lg p-8 max-w-2xl mx-auto">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
                 🔬 Создание новой гипотезы

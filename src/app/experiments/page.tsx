@@ -7,6 +7,7 @@ import Link from "next/link"
 import AppLayout from "@/components/layout/AppLayout"
 import { canEdit, canDelete } from "@/lib/permissions"
 import { Edit2, Trash2 } from "lucide-react"
+import { Breadcrumbs, breadcrumbPatterns } from "@/components/ui/Breadcrumbs"
 
 interface Experiment {
   id: string
@@ -176,6 +177,7 @@ export default function Experiments() {
     <AppLayout>
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
+          <Breadcrumbs items={breadcrumbPatterns.experiments.list()} />
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-900">⚗️ Эксперименты</h1>
             <div className="flex items-center space-x-4">

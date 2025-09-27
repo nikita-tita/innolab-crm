@@ -69,23 +69,31 @@ export class IdeaWorkflowService {
       // Calculate RICE score
       const riceScore = (scores.reach * scores.impact * scores.confidence / 100) / scores.effort
 
-      // Update idea with RICE scores
-      const updatedIdea = await prisma.idea.update({
-        where: { id: ideaId },
-        data: {
-          ...scores,
-          riceScore,
-          status: 'SCORED'
-        },
-        include: {
-          creator: {
-            select: { id: true, name: true, email: true }
+      // Use transaction to prevent race conditions
+      const updatedIdea = await prisma.$transaction(async (tx) => {
+        // Update idea with RICE scores atomically
+        const updated = await tx.idea.update({
+          where: { id: ideaId },
+          data: {
+            ...scores,
+            riceScore,
+            status: 'SCORED'
+          },
+          include: {
+            creator: {
+              select: { id: true, name: true, email: true }
+            }
           }
-        }
-      })
+        })
 
-      // Log the scoring activity
-      await this.logActivity('UPDATED', `RICE score calculated: ${riceScore.toFixed(2)}`, 'idea', ideaId, userId)
+        // Log the scoring activity within transaction
+        await this.logActivity('UPDATED', `RICE score calculated: ${riceScore.toFixed(2)}`, 'idea', ideaId, userId, tx)
+
+        return updated
+      }, {
+        isolationLevel: 'Serializable',
+        timeout: 10000
+      })
 
       logger.info('Idea RICE score calculated', {
         ideaId,

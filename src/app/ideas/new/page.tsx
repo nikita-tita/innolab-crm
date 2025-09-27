@@ -4,6 +4,8 @@ import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { useAutosave, AutosaveIndicator } from "@/hooks/useAutosave"
+import { Breadcrumbs, breadcrumbPatterns } from "@/components/ui/Breadcrumbs"
 
 export default function NewIdea() {
   const { data: session, status } = useSession()
@@ -15,6 +17,24 @@ export default function NewIdea() {
     context: ""
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
+
+  const { loadSaved, clearSaved, hasSaved } = useAutosave({
+    key: "new-idea-form",
+    data: formData,
+    onSave: () => setLastSaved(new Date()),
+    enabled: !isSubmitting
+  })
+
+  // Load saved data on mount
+  useEffect(() => {
+    if (status === "authenticated" && hasSaved()) {
+      const saved = loadSaved()
+      if (saved) {
+        setFormData(saved)
+      }
+    }
+  }, [status, loadSaved, hasSaved])
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -36,6 +56,7 @@ export default function NewIdea() {
       })
 
       if (response.ok) {
+        clearSaved() // Clear autosaved data on successful submission
         router.push("/ideas")
       } else {
         const error = await response.json()
@@ -106,22 +127,11 @@ export default function NewIdea() {
       <main className="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="mb-6">
-            <nav className="flex" aria-label="Breadcrumb">
-              <ol className="flex items-center space-x-4">
-                <li>
-                  <Link href="/ideas" className="text-gray-400 hover:text-gray-500">
-                    Идеи
-                  </Link>
-                </li>
-                <li>
-                  <div className="flex items-center">
-                    <span className="text-gray-400 mx-2">/</span>
-                    <span className="text-gray-600">Новая идея</span>
-                  </div>
-                </li>
-              </ol>
-            </nav>
-            <h1 className="mt-4 text-2xl font-bold text-gray-900">Создать новую идею</h1>
+            <Breadcrumbs items={breadcrumbPatterns.ideas.new()} />
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold text-gray-900">Создать новую идею</h1>
+              <AutosaveIndicator lastSaved={lastSaved} />
+            </div>
             <p className="mt-2 text-gray-600">
               Опишите вашу инновационную идею. После создания команда сможет оценить ее по методологии ICE.
             </p>

@@ -45,38 +45,46 @@ export async function POST(
       return NextResponse.json({ error: "Idea not found" }, { status: 404 })
     }
 
-    // Create or update ICE score
-    const iceScore = await prisma.iCEScore.upsert({
-      where: {
-        userId_ideaId: {
+    // Use transaction to prevent race conditions
+    const iceScore = await prisma.$transaction(async (tx) => {
+      // Create or update ICE score atomically
+      const score = await tx.iCEScore.upsert({
+        where: {
+          userId_ideaId: {
+            userId: session.user.id,
+            ideaId: id
+          }
+        },
+        create: {
+          impact,
+          confidence,
+          ease,
+          comment: comment?.trim() || null,
           userId: session.user.id,
           ideaId: id
-        }
-      },
-      create: {
-        impact,
-        confidence,
-        ease,
-        comment: comment?.trim() || null,
-        userId: session.user.id,
-        ideaId: id
-      },
-      update: {
-        impact,
-        confidence,
-        ease,
-        comment: comment?.trim() || null
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true
+        },
+        update: {
+          impact,
+          confidence,
+          ease,
+          comment: comment?.trim() || null
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true
+            }
           }
         }
-      }
+      })
+
+      return score
+    }, {
+      isolationLevel: 'Serializable',
+      timeout: 10000
     })
 
     return NextResponse.json(iceScore)

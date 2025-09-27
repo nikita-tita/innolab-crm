@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Lightbulb, Calculator, FileText, Search } from "lucide-react"
+import { Breadcrumbs, breadcrumbPatterns } from "@/components/ui/Breadcrumbs"
 
 interface Idea {
   id: string
@@ -52,6 +53,7 @@ function NewHypothesisInner() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [ideas, setIdeas] = useState<Idea[]>([])
   const [loadingIdeas, setLoadingIdeas] = useState(true)
+  const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null)
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -65,12 +67,21 @@ function NewHypothesisInner() {
         const response = await fetch('/api/ideas')
         if (response.ok) {
           const data = await response.json()
-          setIdeas(data.map((idea: unknown) => {
+          const mappedIdeas = data.map((idea: unknown) => {
             const i = idea as { id: string; title: string };
             return {
             id: i.id,
             title: i.title
-          }}))
+          }})
+          setIdeas(mappedIdeas)
+
+          // Find selected idea if ideaId is provided
+          if (ideaId) {
+            const idea = mappedIdeas.find(i => i.id === ideaId)
+            if (idea) {
+              setSelectedIdea(idea)
+            }
+          }
         }
       } catch (error) {
         console.error('Error fetching ideas:', error)
@@ -204,22 +215,8 @@ function NewHypothesisInner() {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="mb-6">
-            <nav className="flex" aria-label="Breadcrumb">
-              <ol className="flex items-center space-x-4">
-                <li>
-                  <Link href="/hypotheses" className="text-gray-400 hover:text-gray-500">
-                    Гипотезы
-                  </Link>
-                </li>
-                <li>
-                  <div className="flex items-center">
-                    <span className="text-gray-400 mx-2">/</span>
-                    <span className="text-gray-600">Новая гипотеза</span>
-                  </div>
-                </li>
-              </ol>
-            </nav>
-            <h1 className="mt-4 text-2xl font-bold text-gray-900">🔬 Создать новую гипотезу</h1>
+            <Breadcrumbs items={breadcrumbPatterns.hypotheses.new(selectedIdea?.title)} />
+            <h1 className="text-2xl font-bold text-gray-900">🔬 Создать новую гипотезу</h1>
             <p className="mt-2 text-gray-600">
               Превратите идею в проверяемое предположение для тестирования
             </p>

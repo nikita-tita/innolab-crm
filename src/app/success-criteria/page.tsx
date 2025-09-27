@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Target, TrendingUp, Users, DollarSign, Clock, CheckCircle, Info } from "lucide-react";
 import Link from "next/link";
 
 export default function SuccessCriteriaPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("define");
   const [criteria, setCriteria] = useState({
     userMetrics: {
@@ -28,6 +32,28 @@ export default function SuccessCriteriaPage() {
       satisfaction: ""
     }
   });
+
+  useEffect(() => {
+    if (status === "loading") return;
+    if (!session) {
+      router.push("/auth/signin");
+    }
+  }, [session, status, router]);
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-xl font-semibold text-gray-900 mb-2">Загрузка...</div>
+          <div className="text-gray-600">Проверка авторизации</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return null;
+  }
 
   const handleSave = () => {
     localStorage.setItem('successCriteria', JSON.stringify(criteria));

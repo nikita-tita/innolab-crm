@@ -83,7 +83,17 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   private handleGoHome = () => {
-    window.location.href = '/dashboard'
+    // Reset error state first
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null
+    });
+
+    // Use Next.js navigation
+    if (typeof window !== 'undefined') {
+      window.location.href = '/dashboard';
+    }
   }
 
   render() {

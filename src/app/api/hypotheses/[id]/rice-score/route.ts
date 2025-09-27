@@ -11,22 +11,28 @@ export async function PUT(
 
     const { reach, impact, confidence, effort, score } = body
 
-    const hypothesis = await prisma.hypothesis.update({
-      where: { id },
-      data: {
-        reach: reach,
-        impact: impact,
-        confidence: confidence,
-        effort: effort,
-        riceScore: score,
-      },
-      include: {
-        creator: { select: { id: true, name: true, email: true, role: true } },
-        idea: { select: { id: true, title: true } },
-        experiments: { select: { id: true, title: true, status: true } },
-        successCriteria: { orderBy: { createdAt: 'asc' } },
-        _count: { select: { experiments: true, comments: true } },
-      },
+    // Use transaction to prevent race conditions
+    const hypothesis = await prisma.$transaction(async (tx) => {
+      return tx.hypothesis.update({
+        where: { id },
+        data: {
+          reach: reach,
+          impact: impact,
+          confidence: confidence,
+          effort: effort,
+          riceScore: score,
+        },
+        include: {
+          creator: { select: { id: true, name: true, email: true, role: true } },
+          idea: { select: { id: true, title: true } },
+          experiments: { select: { id: true, title: true, status: true } },
+          successCriteria: { orderBy: { createdAt: 'asc' } },
+          _count: { select: { experiments: true, comments: true } },
+        },
+      })
+    }, {
+      isolationLevel: 'Serializable',
+      timeout: 10000
     })
 
     return NextResponse.json(hypothesis)

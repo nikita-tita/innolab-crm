@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BarChart3, Plus, User } from "lucide-react"
+import { ICETooltip } from "@/components/ui/Tooltip"
 
 interface ICEScore {
   id: string
@@ -57,7 +58,7 @@ export default function ICEScoringPanel({ ideaId, userRole, userId }: ICEScoring
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, retryCount = 0) => {
     e.preventDefault()
     if (submitting) return
 
@@ -75,12 +76,27 @@ export default function ICEScoringPanel({ ideaId, userRole, userId }: ICEScoring
         setShowForm(false)
         setFormData({ impact: 5, confidence: 5, ease: 5, comment: "" })
         await fetchScores()
+      } else if (response.status === 500 && retryCount < 2) {
+        // Retry on server error (potential concurrency conflict)
+        setSubmitting(false)
+        setTimeout(() => {
+          handleSubmit(e, retryCount + 1)
+        }, 500 + Math.random() * 1000) // Random delay to reduce collision
+        return
       } else {
         const error = await response.json()
         alert(`Ошибка: ${error.error}`)
       }
     } catch (error) {
       console.error("Error submitting ICE score:", error)
+      if (retryCount < 2) {
+        // Retry on network error
+        setSubmitting(false)
+        setTimeout(() => {
+          handleSubmit(e, retryCount + 1)
+        }, 500 + Math.random() * 1000)
+        return
+      }
       alert("Произошла ошибка при отправке оценки")
     } finally {
       setSubmitting(false)
@@ -104,6 +120,7 @@ export default function ICEScoringPanel({ ideaId, userRole, userId }: ICEScoring
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-blue-600" />
             ICE Скоринг команды
+            <ICETooltip />
           </CardTitle>
           {canScore && !showForm && (
             <Button onClick={() => setShowForm(true)} size="sm">

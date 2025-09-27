@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { RICETooltip } from "@/components/ui/Tooltip";
 
 interface RiceScoringProps {
   reach?: number;
@@ -23,7 +24,7 @@ interface RiceValues {
 }
 
 export function RiceScoring({
-  reach = 0,
+  reach = 1,
   impact = 1,
   confidence = 50,
   effort = 1,
@@ -69,7 +70,10 @@ export function RiceScoring({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">RICE Scoring</CardTitle>
+        <CardTitle className="text-lg flex items-center gap-2">
+          RICE Scoring
+          <RICETooltip />
+        </CardTitle>
         <div className={`text-2xl font-bold p-3 rounded-lg ${getScoreColor(score)}`}>
           {score.toFixed(1)}
           <span className="text-sm font-normal ml-2">{getScoreLabel(score)}</span>
@@ -87,11 +91,11 @@ export function RiceScoring({
             <Input
               id="reach"
               type="number"
-              min="0"
+              min="1"
               value={values.reach}
-              onChange={(e) => handleValueChange('reach', parseInt(e.target.value) || 0)}
+              onChange={(e) => handleValueChange('reach', Math.max(1, parseInt(e.target.value) || 1))}
               disabled={disabled}
-              placeholder="0"
+              placeholder="1"
             />
           </div>
 
@@ -121,16 +125,19 @@ export function RiceScoring({
             <Label htmlFor="confidence">
               Уверенность (Confidence)
               <span className="text-sm text-gray-500 block">
-                Процент уверенности (0-100%)
+                Процент уверенности (1-100%)
               </span>
             </Label>
             <Input
               id="confidence"
               type="number"
-              min="0"
+              min="1"
               max="100"
               value={values.confidence}
-              onChange={(e) => handleValueChange('confidence', parseInt(e.target.value) || 0)}
+              onChange={(e) => {
+                const val = parseInt(e.target.value) || 1;
+                handleValueChange('confidence', Math.min(100, Math.max(1, val)));
+              }}
               disabled={disabled}
               placeholder="50"
             />

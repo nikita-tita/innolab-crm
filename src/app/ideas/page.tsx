@@ -6,8 +6,10 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import ExportButton from "@/components/ui/ExportButton"
 import AppLayout from "@/components/layout/AppLayout"
-import { canEdit, canDelete } from "@/lib/permissions"
+import { canEdit, canDelete, canCreate } from "@/lib/permissions"
 import { Edit2, Trash2 } from "lucide-react"
+import QuickActions, { QuickICEModal } from "@/components/ui/QuickActions"
+import { Breadcrumbs, breadcrumbPatterns } from "@/components/ui/Breadcrumbs"
 
 interface Idea {
   id: string
@@ -36,6 +38,8 @@ export default function Ideas() {
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState<'cards' | 'create'>('cards')
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [iceModalOpen, setIceModalOpen] = useState(false)
+  const [selectedIdeaId, setSelectedIdeaId] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -95,6 +99,31 @@ export default function Ideas() {
       alert('Ошибка при удалении идеи')
     } finally {
       setDeletingId(null)
+    }
+  }
+
+  const handleICESubmit = async (scores: { impact: number; confidence: number; ease: number }) => {
+    if (!selectedIdeaId) return
+
+    try {
+      const response = await fetch(`/api/ideas/${selectedIdeaId}/ice-score`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(scores),
+      })
+
+      if (response.ok) {
+        // Refresh the ideas list to show updated status
+        window.location.reload()
+      } else {
+        const error = await response.json()
+        alert(`Ошибка: ${error.error}`)
+      }
+    } catch (error) {
+      console.error("Error submitting ICE score:", error)
+      alert("Произошла ошибка при отправке оценки")
     }
   }
 
@@ -158,6 +187,7 @@ export default function Ideas() {
     <AppLayout>
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
+          <Breadcrumbs items={breadcrumbPatterns.ideas.list()} />
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-900">💡 Идеи</h1>
             <div className="flex space-x-4">
@@ -172,16 +202,18 @@ export default function Ideas() {
                 >
                   📋 Карточки
                 </button>
-                <button
-                  onClick={() => setView('create')}
-                  className={`px-3 py-1 rounded text-sm font-medium ${
-                    view === 'create'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  ➕ Создать
-                </button>
+                {canCreate(session?.user?.role as any) && (
+                  <button
+                    onClick={() => setView('create')}
+                    className={`px-3 py-1 rounded text-sm font-medium ${
+                      view === 'create'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    ➕ Создать
+                  </button>
+                )}
               </div>
               {view === 'cards' && (
                 <>
@@ -204,7 +236,7 @@ export default function Ideas() {
           </div>
 
           {/* Content based on view */}
-          {view === 'create' ? (
+          {view === 'create' && canCreate(session?.user?.role as any) ? (
             <div className="bg-white rounded-xl shadow-lg p-8 max-w-2xl mx-auto">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
                 💡 Создание новой идеи
@@ -296,10 +328,18 @@ export default function Ideas() {
                       <h3 className="text-lg font-semibold text-gray-900 truncate pr-2">
                         {idea.title}
                       </h3>
-                      <div className="flex space-x-1">
+                      <div className="flex items-center space-x-2">
                         <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(idea.status)}`}>
                           {getStatusText(idea.status)}
                         </span>
+                        <QuickActions
+                          ideaId={idea.id}
+                          userRole={session?.user?.role}
+                          onICEScore={() => {
+                            setSelectedIdeaId(idea.id)
+                            setIceModalOpen(true)
+                          }}
+                        />
                       </div>
                     </div>
 
@@ -410,6 +450,16 @@ export default function Ideas() {
           )}
         </div>
       </main>
+
+      <QuickICEModal
+        ideaId={selectedIdeaId || ""}
+        isOpen={iceModalOpen}
+        onClose={() => {
+          setIceModalOpen(false)
+          setSelectedIdeaId(null)
+        }}
+        onSubmit={handleICESubmit}
+      />
     </AppLayout>
   )
 }
