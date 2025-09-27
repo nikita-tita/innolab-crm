@@ -8,7 +8,8 @@ import {
   BookOpen,
   Lightbulb,
   BarChart3,
-  Target
+  Target,
+  Plus
 } from "lucide-react";
 
 import Link from "next/link"
@@ -16,11 +17,14 @@ import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import AppLayout from "@/components/layout/AppLayout"
+import MaterialRequestModal from "@/components/ui/MaterialRequestModal"
 
 export default function KnowledgePage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("methodology");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -38,6 +42,32 @@ export default function KnowledgePage() {
 
   if (!session) {
     return null
+  }
+
+  const handleMaterialRequest = async (data: { title: string; description: string; category: string }) => {
+    setIsSubmitting(true)
+    try {
+      const response = await fetch('/api/material-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (response.ok) {
+        setIsModalOpen(false)
+        alert('Запрос успешно отправлен! Администраторы рассмотрят его в ближайшее время.')
+      } else {
+        const error = await response.json()
+        alert(`Ошибка: ${error.error || 'Не удалось отправить запрос'}`)
+      }
+    } catch (error) {
+      console.error('Error submitting material request:', error)
+      alert('Произошла ошибка при отправке запроса. Попробуйте снова.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
 
@@ -125,9 +155,6 @@ export default function KnowledgePage() {
                   </ol>
                 </div>
 
-                <Button className="w-full">
-                  ➕ Добавить материал по ICE
-                </Button>
               </CardContent>
             </Card>
 
@@ -206,9 +233,6 @@ export default function KnowledgePage() {
                   </div>
                 </div>
 
-                <Button className="w-full">
-                  ➕ Добавить материал по RICE
-                </Button>
               </CardContent>
             </Card>
 
@@ -229,8 +253,9 @@ export default function KnowledgePage() {
                   <p className="text-gray-600 mb-4">
                     Здесь будут размещаться чек-листы, шаблоны отчетов и другие материалы для работы
                   </p>
-                  <Button>
-                    ➕ Добавить шаблон
+                  <Button onClick={() => setIsModalOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Отправить запрос на добавление материала
                   </Button>
                 </div>
               </CardContent>
@@ -242,6 +267,13 @@ export default function KnowledgePage() {
           </div>
         </div>
       </main>
+
+      <MaterialRequestModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleMaterialRequest}
+        isLoading={isSubmitting}
+      />
     </AppLayout>
   );
 }

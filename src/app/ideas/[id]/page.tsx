@@ -2,9 +2,18 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import Comments from "@/components/ui/Comments"
+import ICEScoringPanel from "@/components/ui/ICEScoringPanel"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 
 export default async function IdeaDetails({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user?.id) {
+    return <div>Необходима авторизация</div>
+  }
+
   const idea = await prisma.idea.findUnique({
     where: { id },
     include: {
@@ -60,6 +69,14 @@ export default async function IdeaDetails({ params }: { params: Promise<{ id: st
                 ))}
               </ul>
             )}
+          </div>
+
+          <div className="mt-6">
+            <ICEScoringPanel
+              ideaId={idea.id}
+              userRole={session.user.role as string}
+              userId={session.user.id}
+            />
           </div>
 
           <div className="mt-6 flex gap-3">

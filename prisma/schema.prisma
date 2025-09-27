@@ -39,7 +39,9 @@ model User {
   lessons           Lesson[]
   sessions          Session[]
   iceScores         ICEScore[]
+  riceScores        RICEScore[]
   transitions       HypothesisTransition[] @relation("HypothesisTransitions")
+  materialRequests  MaterialRequest[]
 }
 
 model Account {
@@ -83,12 +85,6 @@ model Idea {
   category    String?
   priority    Priority     @default(MEDIUM)
   status      IdeaStatus   @default(NEW)
-  // RICE scoring fields
-  reach       Int?         // Охват
-  impact      Int?         // Влияние (1-5)
-  confidence  Int?         // Уверенность (%)
-  effort      Int?         // Затраты (человеко-дни)
-  riceScore   Float?       // Автовычисляемый RICE score
   context     String?      // Контекст возникновения идеи
   deletedAt   DateTime?    // Soft delete timestamp
   createdBy   String
@@ -105,7 +101,6 @@ model Idea {
   @@index([status, priority])
   @@index([createdBy])
   @@index([createdAt])
-  @@index([riceScore], map: "idx_idea_rice_score")
   @@index([category], map: "idx_idea_category")
   @@index([status, priority, createdAt])
   @@index([deletedAt], map: "idx_idea_deleted")
@@ -125,12 +120,6 @@ model Hypothesis {
   // Уровни гипотез
   level               HypothesisLevel   @default(LEVEL_1)   // Уровень гипотезы
 
-  // RICE scoring для гипотез
-  reach               Int?              // Охват эксперимента
-  impact              Int?              // Влияние при подтверждении (1-5)
-  confidence          Int?              // Уверенность (%)
-  effort              Int?              // Затраты на эксперимент
-  riceScore           Float?            // Автовычисляемый RICE score
 
   // Дополнительные поля из методологии
   targetAudience      String?           // Целевая аудитория/сегмент
@@ -192,7 +181,7 @@ model Hypothesis {
   idea                Idea              @relation(fields: [ideaId], references: [id], onDelete: Cascade)
   successCriteria     SuccessCriteria[]
   artifacts           Artifact[]
-  iceScores           ICEScore[]
+  riceScores          RICEScore[]
   transitions         HypothesisTransition[]
 
   // Indexes for performance
@@ -202,7 +191,6 @@ model Hypothesis {
   @@index([ownerUserId], map: "idx_hypothesis_owner")
   @@index([createdAt])
   @@index([priority])
-  @@index([riceScore], map: "idx_hypothesis_rice_score")
   @@index([status, level, priority])
   @@index([deletedAt], map: "idx_hypothesis_deleted")
   @@unique([ideaId, title], name: "unq_hypothesis_title_per_idea")
@@ -350,21 +338,39 @@ model ICEScore {
   ease         Int        // Простота реализации (1-10)
   comment      String?    // Комментарий к оценке
   userId       String     // Кто оценивал
-  ideaId       String?    // Для оценки идей
-  hypothesisId String?    // Для оценки гипотез
+  ideaId       String     // Только для оценки идей
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
   // Relations
   user         User       @relation(fields: [userId], references: [id])
-  idea         Idea?      @relation(fields: [ideaId], references: [id])
-  hypothesis   Hypothesis? @relation(fields: [hypothesisId], references: [id])
+  idea         Idea       @relation(fields: [ideaId], references: [id])
 
   // Constraints and indexes
   @@unique([userId, ideaId])
-  @@unique([userId, hypothesisId])
   @@index([ideaId, userId], map: "idx_ice_score_idea")
-  @@index([hypothesisId, userId], map: "idx_ice_score_hypothesis")
+}
+
+model RICEScore {
+  id           String     @id @default(cuid())
+  reach        Int        // Охват (количество пользователей)
+  impact       Int        // Влияние (1-5)
+  confidence   Int        // Уверенность (0-100%)
+  effort       Int        // Усилия (человеко-дни)
+  riceScore    Float?     // Автовычисляемый RICE score
+  comment      String?    // Комментарий к оценке
+  userId       String     // Кто оценивал
+  hypothesisId String     // Только для оценки гипотез
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  // Relations
+  user         User       @relation(fields: [userId], references: [id])
+  hypothesis   Hypothesis @relation(fields: [hypothesisId], references: [id])
+
+  // Constraints and indexes
+  @@unique([userId, hypothesisId])
+  @@index([hypothesisId, userId], map: "idx_rice_score_hypothesis")
 }
 
 model LabInventory {
@@ -576,6 +582,42 @@ enum HypothesisConclusion {
   INVALIDATED       // Опровергнута
   INCONCLUSIVE      // Неоднозначный результат
   NEEDS_MORE_DATA   // Нужно больше данных
+}
+
+model MaterialRequest {
+  id          String                @id @default(cuid())
+  title       String                // Заголовок запроса
+  description String                // Описание материала
+  category    MaterialCategory      @default(METHODOLOGY)
+  status      MaterialRequestStatus @default(PENDING)
+  userId      String                // Кто подал запрос
+  adminNotes  String?               // Заметки администратора
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  // Relations
+  user        User                  @relation(fields: [userId], references: [id])
+
+  // Indexes
+  @@index([status])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+enum MaterialCategory {
+  METHODOLOGY       // Методология
+  TEMPLATE          // Шаблоны
+  CHECKLIST         // Чек-листы
+  GUIDE             // Руководства
+  OTHER             // Другое
+}
+
+enum MaterialRequestStatus {
+  PENDING           // Ожидает рассмотрения
+  APPROVED          // Одобрен
+  REJECTED          // Отклонен
+  IN_PROGRESS       // В работе
+  COMPLETED         // Выполнен
 }
 
 enum FieldType {

@@ -3,163 +3,87 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
-// Функция для пересчета среднего ICE score идеи
-async function updateIdeaIceScore(ideaId: string) {
-  const scores = await prisma.iceScore.findMany({
-    where: { ideaId },
-    select: { impact: true, confidence: true, ease: true }
-  })
-
-  if (scores.length === 0) {
-    // Если нет оценок, очищаем поля
-    await prisma.idea.update({
-      where: { id: ideaId },
-      data: {
-        impact: null,
-        confidence: null,
-        effort: null, // ease -> effort
-        riceScore: null,
-        status: "NEW"
-      }
-    })
-    return
-  }
-
-  // Вычисляем средние значения
-  const avgImpact = Math.round(scores.reduce((sum, s) => sum + s.impact, 0) / scores.length)
-  const avgConfidence = Math.round(scores.reduce((sum, s) => sum + s.confidence, 0) / scores.length)
-  const avgEase = Math.round(scores.reduce((sum, s) => sum + s.ease, 0) / scores.length)
-
-  // ICE score = Impact × Confidence × Ease
-  const iceScore = avgImpact * avgConfidence * avgEase
-
-  await prisma.idea.update({
-    where: { id: ideaId },
-    data: {
-      impact: avgImpact,
-      confidence: avgConfidence,
-      effort: avgEase, // ease -> effort mapping
-      riceScore: iceScore,
-      status: "SCORED"
-    }
-  })
-}
-
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
-
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Необходима авторизация" },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Check if user can score (not VIEWER)
+    if (session.user.role === "VIEWER") {
+      return NextResponse.json({ error: "Viewers cannot score ideas" }, { status: 403 })
     }
 
     const { id } = await params
     const { impact, confidence, ease, comment } = await request.json()
 
-    // Валидация оценок
     if (!impact || !confidence || !ease) {
       return NextResponse.json(
-        { error: "Все ICE оценки обязательны" },
+        { error: "Impact, confidence, and ease are required" },
         { status: 400 }
       )
     }
 
+    // Validate scores are 1-10
     if (impact < 1 || impact > 10 || confidence < 1 || confidence > 10 || ease < 1 || ease > 10) {
       return NextResponse.json(
-        { error: "Оценки должны быть от 1 до 10" },
+        { error: "Scores must be between 1 and 10" },
         { status: 400 }
       )
     }
 
-    // Проверяем, что идея существует
+    // Check if idea exists
     const idea = await prisma.idea.findUnique({
       where: { id }
     })
 
     if (!idea) {
-      return NextResponse.json(
-        { error: "Идея не найдена" },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Idea not found" }, { status: 404 })
     }
 
-    // Проверяем, не оценивал ли уже пользователь эту идею
-    const existingScore = await prisma.iceScore.findFirst({
+    // Create or update ICE score
+    const iceScore = await prisma.iCEScore.upsert({
       where: {
-        ideaId: id,
-        userId: session.user.id
+        userId_ideaId: {
+          userId: session.user.id,
+          ideaId: id
+        }
+      },
+      create: {
+        impact,
+        confidence,
+        ease,
+        comment: comment?.trim() || null,
+        userId: session.user.id,
+        ideaId: id
+      },
+      update: {
+        impact,
+        confidence,
+        ease,
+        comment: comment?.trim() || null
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true
+          }
+        }
       }
     })
 
-    if (existingScore) {
-      // Обновляем существующую оценку
-      const updatedScore = await prisma.iceScore.update({
-        where: { id: existingScore.id },
-        data: {
-          impact,
-          confidence,
-          ease,
-          comment: comment?.trim() || null
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              role: true
-            }
-          }
-        }
-      })
-
-      // Пересчитываем средний ICE score для идеи
-      await updateIdeaIceScore(id)
-
-      return NextResponse.json({
-        message: "Оценка обновлена",
-        score: updatedScore
-      })
-    } else {
-      // Создаем новую оценку
-      const newScore = await prisma.iceScore.create({
-        data: {
-          impact,
-          confidence,
-          ease,
-          comment: comment?.trim() || null,
-          ideaId: id,
-          userId: session.user.id
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              role: true
-            }
-          }
-        }
-      })
-
-      // Пересчитываем средний ICE score для идеи
-      await updateIdeaIceScore(id)
-
-      return NextResponse.json({
-        message: "Оценка добавлена",
-        score: newScore
-      })
-    }
-
+    return NextResponse.json(iceScore)
   } catch (error) {
-    console.error("Error adding ICE score:", error)
+    console.error("Error creating/updating ICE score:", error)
     return NextResponse.json(
-      { error: "Ошибка сервера" },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }
@@ -170,27 +94,58 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const { id } = await params
 
-    const scores = await prisma.iceScore.findMany({
+    // Get all ICE scores for this idea
+    const iceScores = await prisma.iCEScore.findMany({
       where: { ideaId: id },
       include: {
         user: {
           select: {
             id: true,
             name: true,
+            email: true,
             role: true
           }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: {
+        createdAt: 'desc'
+      }
     })
 
-    return NextResponse.json(scores)
+    // Calculate average scores
+    let avgImpact = 0
+    let avgConfidence = 0
+    let avgEase = 0
+    let avgTotal = 0
+
+    if (iceScores.length > 0) {
+      avgImpact = iceScores.reduce((sum, score) => sum + score.impact, 0) / iceScores.length
+      avgConfidence = iceScores.reduce((sum, score) => sum + score.confidence, 0) / iceScores.length
+      avgEase = iceScores.reduce((sum, score) => sum + score.ease, 0) / iceScores.length
+      avgTotal = (avgImpact + avgConfidence + avgEase) / 3
+    }
+
+    return NextResponse.json({
+      scores: iceScores,
+      averages: {
+        impact: Math.round(avgImpact * 100) / 100,
+        confidence: Math.round(avgConfidence * 100) / 100,
+        ease: Math.round(avgEase * 100) / 100,
+        total: Math.round(avgTotal * 100) / 100
+      },
+      totalScores: iceScores.length
+    })
   } catch (error) {
     console.error("Error fetching ICE scores:", error)
     return NextResponse.json(
-      { error: "Ошибка сервера" },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }
