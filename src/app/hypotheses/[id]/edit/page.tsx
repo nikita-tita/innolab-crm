@@ -17,6 +17,7 @@ interface HypothesisData {
   testingMethod?: string
   successCriteriaText?: string
   level: string
+  deskResearchNotes?: string
   reach?: number
   impact?: number
   confidence?: number
@@ -38,6 +39,7 @@ export default function EditHypothesis({ params }: { params: { id: string } }) {
     testingMethod: "",
     successCriteriaText: "",
     level: "LEVEL_1",
+    deskResearchNotes: "",
     reach: 0,
     impact: 1,
     confidence: 50,
@@ -69,6 +71,7 @@ export default function EditHypothesis({ params }: { params: { id: string } }) {
             testingMethod: hypothesisData.testingMethod || "",
             successCriteriaText: hypothesisData.successCriteriaText || "",
             level: hypothesisData.level || "LEVEL_1",
+            deskResearchNotes: hypothesisData.deskResearchNotes || "",
             reach: hypothesisData.reach || 0,
             impact: hypothesisData.impact || 1,
             confidence: hypothesisData.confidence || 50,
@@ -342,6 +345,30 @@ export default function EditHypothesis({ params }: { params: { id: string } }) {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Какие результаты будут считаться успешными? Какие метрики и пороговые значения?"
                 />
+              </div>
+
+              <div>
+                <label htmlFor="deskResearchNotes" className="block text-sm font-medium text-gray-700 mb-2">
+                  Результаты Desk Research
+                </label>
+                <textarea
+                  id="deskResearchNotes"
+                  name="deskResearchNotes"
+                  rows={5}
+                  value={formData.deskResearchNotes}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                  placeholder="Результаты кабинетного исследования, ключевые выводы и ссылки на источники...
+
+Примеры:
+• Основные выводы исследования
+• Статистика и данные
+• Ссылки на источники: https://example.com
+• Анализ конкурентов"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  💡 Совет: Добавляйте прямые ссылки на источники - они станут кликабельными при просмотре
+                </p>
               </div>
 
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">

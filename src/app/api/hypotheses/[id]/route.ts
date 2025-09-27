@@ -103,7 +103,8 @@ export async function PUT(
       reach,
       impact,
       confidence,
-      effort
+      effort,
+      deskResearchNotes
     } = body
 
     if (!title || !statement) {
@@ -162,6 +163,7 @@ export async function PUT(
         confidence: confidence || null,
         effort: effort || null,
         riceScore: riceScore,
+        deskResearchNotes: deskResearchNotes || null,
       },
       include: {
         creator: { select: { id: true, name: true, email: true, role: true } },

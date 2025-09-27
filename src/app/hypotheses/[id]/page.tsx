@@ -8,7 +8,7 @@ import HADIStepper from "@/components/ui/HADIStepper"
 import StatusControls from "./status-controls"
 import SuccessCriteriaPanel from "@/components/ui/SuccessCriteriaPanel"
 import { RiceScoring } from "@/components/ui/rice-scoring"
-import { DeskResearch } from "@/components/ui/desk-research"
+import { SimpleDeskResearch } from "@/components/ui/simple-desk-research"
 import { SuccessCriteriaManager } from "@/components/ui/success-criteria-manager"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -150,59 +150,24 @@ export default function HypothesisDetails({ params }: { params: Promise<{ id: st
                 </CardContent>
               </Card>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Описание гипотезы</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-700">{hypothesis.description || "Описание не указано"}</p>
-                    {hypothesis.targetAudience && (
-                      <div className="mt-4 p-3 bg-blue-50 rounded">
-                        <p className="text-sm font-medium text-blue-900">Целевая аудитория:</p>
-                        <p className="text-sm text-blue-800">{hypothesis.targetAudience}</p>
-                      </div>
-                    )}
-                    {hypothesis.userValue && (
-                      <div className="mt-2 p-3 bg-green-50 rounded">
-                        <p className="text-sm font-medium text-green-900">Ценность для пользователя:</p>
-                        <p className="text-sm text-green-800">{hypothesis.userValue}</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Бизнес-контекст</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 text-sm">
-                    {hypothesis.businessImpact && (
-                      <div>
-                        <span className="font-medium text-gray-900">Влияние на метрики:</span>
-                        <p className="text-gray-700 mt-1">{hypothesis.businessImpact}</p>
-                      </div>
-                    )}
-                    {hypothesis.financialImpact && (
-                      <div>
-                        <span className="font-medium text-gray-900">Финансовое обоснование:</span>
-                        <p className="text-gray-700 mt-1">{hypothesis.financialImpact}</p>
-                      </div>
-                    )}
-                    {hypothesis.strategicAlignment && (
-                      <div>
-                        <span className="font-medium text-gray-900">Связь с целями компании:</span>
-                        <p className="text-gray-700 mt-1">{hypothesis.strategicAlignment}</p>
-                      </div>
-                    )}
-                    <div className="mt-4 pt-3 border-t">
-                      <div><span className="font-medium">Автор:</span> {hypothesis.creator.name ?? hypothesis.creator.email}</div>
-                      <div><span className="font-medium">Создано:</span> {new Date(hypothesis.createdAt).toLocaleDateString()}</div>
-                      <div><span className="font-medium">Обновлено:</span> {new Date(hypothesis.updatedAt).toLocaleDateString()}</div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Информация о гипотезе</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm space-y-3">
+                  {hypothesis.description && (
+                    <div>
+                      <span className="font-medium text-gray-900">Описание:</span>
+                      <p className="text-gray-700 mt-1">{hypothesis.description}</p>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  )}
+                  <div className="pt-3 border-t">
+                    <div><span className="font-medium">Автор:</span> {hypothesis.creator.name ?? hypothesis.creator.email}</div>
+                    <div><span className="font-medium">Создано:</span> {new Date(hypothesis.createdAt).toLocaleDateString()}</div>
+                    <div><span className="font-medium">Обновлено:</span> {new Date(hypothesis.updatedAt).toLocaleDateString()}</div>
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Рекомендации по следующим шагам */}
               <Card className="bg-yellow-50 border-yellow-200">
@@ -244,23 +209,15 @@ export default function HypothesisDetails({ params }: { params: Promise<{ id: st
             </TabsContent>
 
             <TabsContent value="desk-research">
-              <DeskResearch
+              <SimpleDeskResearch
                 hypothesisId={hypothesis.id}
-                initialData={{
-                  notes: hypothesis.deskResearchNotes || "",
-                  sources: hypothesis.deskResearchSources || [],
-                  targetAudience: hypothesis.targetAudience,
-                  businessImpact: hypothesis.businessImpact,
-                  risks: hypothesis.risks || [],
-                  opportunities: hypothesis.opportunities || [],
-                  researchDate: hypothesis.deskResearchDate
-                }}
-                onSave={async (data) => {
+                initialNotes={hypothesis.deskResearchNotes || ""}
+                onSave={async (notes) => {
                   try {
-                    const response = await fetch(`/api/hypotheses/${hypothesis.id}/desk-research`, {
+                    const response = await fetch(`/api/hypotheses/${hypothesis.id}`, {
                       method: 'PUT',
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify(data)
+                      body: JSON.stringify({ deskResearchNotes: notes })
                     });
                     if (response.ok) {
                       const updatedHypothesis = await response.json();
@@ -270,22 +227,7 @@ export default function HypothesisDetails({ params }: { params: Promise<{ id: st
                     console.error("Error saving desk research:", error);
                   }
                 }}
-                onStatusChange={async (newStatus) => {
-                  try {
-                    const response = await fetch(`/api/hypotheses/${hypothesis.id}/status`, {
-                      method: 'PUT',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ status: newStatus })
-                    });
-                    if (response.ok) {
-                      const updatedHypothesis = await response.json();
-                      setHypothesis(updatedHypothesis);
-                    }
-                  } catch (error) {
-                    console.error("Error updating status:", error);
-                  }
-                }}
-                disabled={hypothesis.status !== "RESEARCH"}
+                disabled={false}
               />
             </TabsContent>
 
